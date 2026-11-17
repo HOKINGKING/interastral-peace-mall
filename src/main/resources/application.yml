@@ -48,9 +48,11 @@ mybatis-plus:
     banner: false
     db-config:
       id-type: auto
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+      # 本项目【不做逻辑删除】，数据库也没有 deleted 列：
+      # 商品用 status(DRAFT/ON_SALE) 上下架代替删除，订单用 status(CANCELLED) 取消，
+      # 外键 ON DELETE RESTRICT 兜底。若误配 logic-delete-field，MyBatis-Plus 会在
+      # 每条 SQL 后面拼 deleted=0，直接报 Unknown column 'deleted'。
+      # logic-delete-field: deleted   ← 不要打开
 
 # 自定义配置：图片上传目录
 mall:
