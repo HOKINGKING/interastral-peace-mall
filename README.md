@@ -66,7 +66,7 @@ interastral-peace-mall
 
 ## 五、下一步（第 0 阶段剩余）
 
-- [ ] 补充 9 张业务表 DDL 与测试数据
+- [ ] 补充 10 张业务表 DDL 与测试数据
 - [ ] 建立实体类 `BaseEntity` + 字段自动填充 `MyMetaObjectHandler`
 - [ ] 登录拦截器 `LoginInterceptor` + `WebMvcConfig`
 - [ ] AOP：`@OperLog` 操作日志切面、耗时监控切面
