@@ -1,0 +1,39 @@
+# ---------- Maven ----------
+target/
+!.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+# ---------- IntelliJ IDEA ----------
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ---------- Eclipse / VSCode ----------
+.classpath
+.project
+.settings/
+.vscode/
+*.code-workspace
+
+# ---------- 日志与临时文件 ----------
+*.log
+logs/
+*.tmp
+*.bak
+
+# ---------- 上传的图片（不要入库，答辩时另存备份） ----------
+uploads/
+upload/
+
+# ---------- 本地敏感配置（数据库密码不进仓库） ----------
+src/main/resources/application-local.yml
+
+# ---------- 操作系统 ----------
+.DS_Store
+Thumbs.db
+desktop.ini

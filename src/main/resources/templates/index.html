@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星际和平商城 | Interastral Peace Mall</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 20% 20%, #1b2a4a 0%, #0b1220 55%, #05070d 100%);
+            color: #e8eefc;
+        }
+        .card {
+            width: min(680px, 90vw);
+            padding: 48px 40px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(120, 170, 255, 0.25);
+            box-shadow: 0 0 60px rgba(60, 120, 255, 0.15);
+            text-align: center;
+        }
+        .logo {
+            font-size: 15px;
+            letter-spacing: 6px;
+            color: #7fb0ff;
+            text-transform: uppercase;
+        }
+        h1 {
+            margin: 18px 0 8px;
+            font-size: 34px;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, #9ecbff, #ffffff, #9ecbff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .en { color: #8fa4c8; font-size: 14px; letter-spacing: 2px; }
+        .tips {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px dashed rgba(140, 170, 220, 0.3);
+            text-align: left;
+            font-size: 14px;
+            line-height: 2;
+            color: #b9c8e4;
+        }
+        .tips b { color: #9ecbff; font-weight: 500; }
+        code {
+            background: rgba(130, 170, 255, 0.12);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #d5e4ff;
+        }
+        a { color: #8fc0ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">Interastral Peace Corporation</div>
+    <h1>星际和平商城</h1>
+    <div class="en">Interastral Peace Mall</div>
+
+    <div class="tips">
+        <div>✅ <b>项目骨架已就绪</b>，看到这个页面说明 Spring Boot + Thymeleaf 正常。</div>
+        <div>🔗 自检接口：<a href="/ping" target="_blank">/ping</a> 应返回 <code>{"code":200,"data":"pong"}</code></div>
+        <div>🗄️ 建库脚本：<code>db/init.sql</code>，执行后修改 <code>application.yml</code> 里的账号密码即可连库。</div>
+        <div>👉 下一步：a) 执行 init.sql 建库　b) git init 首次提交　c) 创建 GitHub 仓库并 push</div>
+    </div>
+</div>
+</body>
+</html>
