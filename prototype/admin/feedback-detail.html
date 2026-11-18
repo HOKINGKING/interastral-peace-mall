@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>投诉处理 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="active">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 投诉与反馈 / 处理</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>处理投诉 / 反馈</h1><p>FB-1001 · 普通反馈</p></div><div class="row"><a class="btn btn-sm" href="feedback.html">返回列表</a></div></div>
+<div class="row" style="align-items:flex-start;gap:18px">
+  <div class="content-main">
+    <div class="panel pad">
+      <div class="between"><div class="row"><span class="badge badge-paid">反馈</span><span class="badge badge-pending">待处理</span></div><span class="small muted">2026-11-17 20:15</span></div>
+      <div class="divider"></div>
+      <p>希望商品详情页能标出模型的实际尺寸，现在只能靠图片估计，容易买大。</p>
+      <div class="small muted mt-16">提交人：星野（ID 1274） · 分类：其他 · 联系方式：138****6688</div>
+      
+    </div>
+
+    <div class="panel pad mt-16">
+      <b>回复用户</b>
+      <form class="mt-16" data-ok="原型演示：回复已发送，状态变为「已回复」">
+        <div class="field">
+          <textarea class="textarea" placeholder="回复内容 1–500 字，会展示给用户"></textarea>
+          <div class="help">建议说明处理结论与时限，避免承诺无法兑现的补偿</div>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" type="submit">发送回复</button>
+          <button class="btn" data-confirm="原型演示：已关闭，状态变为「已关闭」（终态）">直接关闭</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <aside style="width:320px;flex:0 0 320px">
+    <div class="panel pad">
+      <b>状态流转</b>
+      <div class="timeline mt-16">
+        <div class="item done"><div class="t">用户提交</div><div class="d">2026-11-17 20:15</div></div>
+        <div class="item"><div class="t muted">待受理</div><div class="d">受理后变为「处理中」</div></div>
+        <div class="item"><div class="t muted">待回复</div><div class="d">回复后变为「已回复」</div></div>
+        <div class="item"><div class="t muted">待关闭</div><div class="d">关闭后进入终态</div></div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-block" data-demo="原型演示：已受理，状态变为「处理中」">受理</button>
+      <p class="small muted mt-8">用户仅能在「待处理」状态撤销。</p>
+    </div>
+  </aside>
+</div></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>确认订单 · 星际和平商城</title><link rel="icon" href="assets/ipc-logo-dark.png"><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 用户端 · 数据为虚构演示</div>
+  <div><a href="sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="index.html">返回前台</a></div>
+</div>
+<header class="site-header">
+  <div class="corp-strip"><div class="container"><span>星际和平公司 · 传统项目部</span><span>以信用点（Credit）结算 · 全星系 48 小时直达</span></div></div>
+  <div class="container">
+    <div class="brand-row">
+      <a class="brand" href="index.html"><span class="mark brand-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span class="wm"><b>星际和平商城</b><i>INTERASTRAL PEACE MALL</i></span></a>
+      <form class="search" data-ok="原型演示：搜索会跳到商品列表页"><input placeholder="搜索商品，如「水杯」「徽章」"><button type="submit">搜索</button></form>
+      <div class="header-actions">
+        <a href="user-center.html">你好，星野</a>
+        <a class="cart-link" href="cart.html">购物车<span class="count">2</span></a>
+        <a href="login.html" data-demo="原型演示：已退出登录（不会真的登出）">退出</a>
+      </div>
+    </div>
+    <nav class="nav"><a href="index.html" class="">首页</a><a href="category.html" class="">分类</a><a href="product-list.html" class="">全部商品</a><a href="order-list.html" class="">我的订单</a><a href="feedback-list.html" class="">投诉与反馈</a></nav>
+  </div>
+</header>
+<main>
+<section class="page"><div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a><span class="sep">›</span><a href="cart.html">购物车</a><span class="sep">›</span><span>确认订单</span></div>
+  <div class="panel pad-sm mb-16">
+    <div class="steps">
+      <div class="step done"><div class="n">✓</div>购物车</div>
+      <div class="step active"><div class="n">2</div>确认订单</div>
+      <div class="step"><div class="n">3</div>支付</div>
+      <div class="step"><div class="n">4</div>完成</div>
+    </div>
+  </div>
+
+  <div class="row" style="align-items:flex-start;gap:20px">
+    <div class="content-main">
+      <div class="panel pad">
+        <div class="between mb-16"><b>收货地址</b><a class="btn btn-sm" href="address-form.html">新增地址</a></div>
+        <div class="grid-2">
+          <div class="addr-card active">
+            <div class="who">星野 · 138****6688 <span class="badge badge-paid" style="margin-left:6px">默认</span></div>
+            <div class="small muted">星际和平港 中央区 舰桥大道 1024 号 3 栋 1201</div>
+          </div>
+          <div class="addr-card">
+            <div class="who">星野 · 138****6688</div>
+            <div class="small muted">近地轨道仓 A 区 收货点 7 号柜</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel mt-16">
+        <div class="pad-sm" style="border-bottom:1px solid var(--line)"><b>商品明细</b></div>
+        <table class="table">
+          <thead><tr><th>商品</th><th>单价</th><th>数量</th><th class="right">小计</th></tr></thead>
+          <tbody>
+            <tr><td><div class="row"><span class="ph" style="width:44px;height:44px;font-size:18px">🥤</span><div>星际和平水杯 · 500ml<div class="small muted">500ml 星白</div></div></div></td><td>¥59.00</td><td>1</td><td class="right">¥59.00</td></tr>
+            <tr><td><div class="row"><span class="ph alt-1" style="width:44px;height:44px;font-size:18px">🎒</span><div>星轨帆布包 · 加厚版<div class="small muted">深空蓝</div></div></div></td><td>¥89.00</td><td>1</td><td class="right">¥89.00</td></tr>
+          </tbody>
+        </table>
+        <div class="pad-sm">
+          <label class="small muted">订单备注</label>
+          <input class="input mt-8" placeholder="选填，如：工作日送达 / 放前台" maxlength="200">
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel pad" style="width:340px;flex:0 0 340px">
+      <b>费用明细</b>
+      <div class="divider"></div>
+      <div class="between small"><span class="muted">商品总额</span><span>¥148.00</span></div>
+      <div class="between small mt-8"><span class="muted">运费</span><span>¥0.00</span></div>
+      <div class="divider"></div>
+      <div class="between"><span>应付</span><span class="total-amount">¥148.00</span></div>
+      <form data-ok="原型演示：订单已提交（真实实现会校验库存并跳转支付页）" class="mt-16">
+        <button class="btn btn-primary btn-block" style="height:44px" type="submit">提交订单</button>
+      </form>
+      <p class="small muted mt-8">提交前会再次校验库存，库存不足会提示并回到购物车。</p>
+    </aside>
+  </div>
+</div></section></main>
+<footer class="site-footer">
+  <div class="container row" style="justify-content:space-between">
+    <div class="footer-corp">
+      <span class="mark footer-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span>
+      <div>© 2026 星际和平商城 · 星际和平公司传统项目部</div>
+    </div>
+    <div class="row" style="gap:20px">
+      <a href="feedback-form.html">意见反馈</a>
+      <a href="admin/index.html">卖家后台</a>
+      <a href="sitemap.html">原型页面清单</a>
+    </div>
+  </div>
+</footer>
+<script src="assets/app.js"></script>
+</body></html>

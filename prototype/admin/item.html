@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKU 管理 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="active">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 商品管理 / SKU</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>SKU 管理</h1><p>SPU-1001 · 星际和平水杯 · 500ml</p></div><div class="row"><button class="btn btn-primary btn-sm" data-demo="原型演示：打开新增 SKU 表单">+ 新增 SKU</button></div></div>
+<div class="panel pad mb-16">
+  <div class="row"><span class="ph" style="width:56px;height:56px;font-size:24px">🥤</span>
+    <div><div style="font-weight:700">星际和平水杯 · 500ml</div><div class="small muted">家居日用 / 杯壶 · 上架中 · 3 个 SKU · 总库存 174</div></div>
+    <span style="flex:1"></span><a class="btn btn-sm" href="product.html" data-demo="原型演示：返回商品列表">返回商品列表</a>
+  </div>
+</div>
+<div class="panel">
+  <table class="table">
+    <thead><tr><th>规格</th><th>价格</th><th>库存</th><th>版本</th><th>状态</th><th>更新时间</th><th class="right">操作</th></tr></thead>
+    <tbody>
+      <tr><td>500ml 星白</td><td>¥59.00</td><td>128</td><td class="mono">7</td><td><span class="badge badge-completed">在售</span></td><td class="muted">2026-11-17 09:12</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：该 SKU 存在未完结订单，删除被拒绝">删除</button></div></td></tr>
+      <tr><td>500ml 深空黑</td><td>¥59.00</td><td>46</td><td class="mono">3</td><td><span class="badge badge-completed">在售</span></td><td class="muted">2026-11-15 16:40</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td>750ml 星白</td><td>¥69.00</td><td>0</td><td class="mono">9</td><td><span class="badge badge-cancelled">售罄</span></td><td class="muted">2026-11-10 11:05</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="small muted mt-8">库存扣减走乐观锁（version + stock >= qty 条件更新），后台改库存会校验 version 是否一致。</p></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>

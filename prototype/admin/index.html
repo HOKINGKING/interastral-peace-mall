@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工作台 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="active">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 工作台</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>工作台</h1><p>今天先把「待发货」和「待处理投诉」清掉</p></div><div class="row"></div></div>
+<div class="stats">
+  <div class="stat"><div class="k">今日订单</div><div class="v">18 <em>笔</em></div><div class="small muted">较昨日 +12%</div></div>
+  <div class="stat"><div class="k">待发货</div><div class="v" style="color:var(--warn)">3 <em>笔</em></div><div class="small muted">已支付未发货</div></div>
+  <div class="stat"><div class="k">在售商品</div><div class="v">42 <em>件</em></div><div class="small muted">含 7 个 SPU 下架</div></div>
+  <div class="stat"><div class="k">待处理投诉</div><div class="v" style="color:var(--danger)">2 <em>条</em></div><div class="small muted">1 条超过 24 小时</div></div>
+</div>
+
+<div class="panel mt-16">
+  <div class="pad-sm between" style="border-bottom:1px solid var(--line)"><b>待处理投诉</b><a class="small muted" href="feedback.html">全部 →</a></div>
+  <table class="table">
+    <thead><tr><th>类型</th><th>用户</th><th>关联订单</th><th>描述</th><th>提交时间</th><th>状态</th><th class="right">操作</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-danger">投诉</span></td><td>星野</td><td class="mono">20261116102133</td><td class="muted">蜡烛玻璃杯有细裂纹，希望换货</td><td>11-16 11:02</td><td><span class="badge badge-shipped">已回复</span></td><td class="right"><a class="btn btn-sm" href="feedback-detail.html">处理</a></td></tr>
+      <tr><td><span class="badge badge-paid">反馈</span></td><td>星野</td><td>—</td><td class="muted">希望详情页标出模型实际尺寸</td><td>11-17 20:15</td><td><span class="badge badge-pending">待处理</span></td><td class="right"><a class="btn btn-sm btn-primary" href="feedback-detail.html">处理</a></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="panel mt-16">
+  <div class="pad-sm between" style="border-bottom:1px solid var(--line)"><b>最近订单</b><a class="small muted" href="order.html">全部 →</a></div>
+  <table class="table">
+    <thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>状态</th><th>下单时间</th><th class="right">操作</th></tr></thead>
+    <tbody><tr><td class="mono">20261118093012</td><td>星野</td><td>¥388.00</td><td><span class="badge badge-paid">已支付</span></td><td>2026-11-18 09:30</td><td class="right"><a class="btn btn-sm" href="order-detail.html">详情</a></td></tr><tr><td class="mono">20261117181202</td><td>星野</td><td>¥299.00</td><td><span class="badge badge-shipped">已发货</span></td><td>2026-11-17 18:12</td><td class="right"><a class="btn btn-sm" href="order-detail.html">详情</a></td></tr><tr><td class="mono">20261116102133</td><td>星野</td><td>¥129.00</td><td><span class="badge badge-completed">已完成</span></td><td>2026-11-16 10:21</td><td class="right"><a class="btn btn-sm" href="order-detail.html">详情</a></td></tr><tr><td class="mono">20261115143044</td><td>星野</td><td>¥59.00</td><td><span class="badge badge-pending">待支付</span></td><td>2026-11-15 14:30</td><td class="right"><a class="btn btn-sm" href="order-detail.html">详情</a></td></tr></tbody>
+  </table>
+</div></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>

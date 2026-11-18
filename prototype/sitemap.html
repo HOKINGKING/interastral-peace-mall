@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>页面清单 · 星际和平商城</title><link rel="icon" href="assets/ipc-logo-dark.png"><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 用户端 · 数据为虚构演示</div>
+  <div><a href="sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="index.html">返回前台</a></div>
+</div>
+<header class="site-header">
+  <div class="corp-strip"><div class="container"><span>星际和平公司 · 传统项目部</span><span>以信用点（Credit）结算 · 全星系 48 小时直达</span></div></div>
+  <div class="container">
+    <div class="brand-row">
+      <a class="brand" href="index.html"><span class="mark brand-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span class="wm"><b>星际和平商城</b><i>INTERASTRAL PEACE MALL</i></span></a>
+      <form class="search" data-ok="原型演示：搜索会跳到商品列表页"><input placeholder="搜索商品，如「水杯」「徽章」"><button type="submit">搜索</button></form>
+      <div class="header-actions">
+        <a href="user-center.html">你好，星野</a>
+        <a class="cart-link" href="cart.html">购物车<span class="count">2</span></a>
+        <a href="login.html" data-demo="原型演示：已退出登录（不会真的登出）">退出</a>
+      </div>
+    </div>
+    <nav class="nav"><a href="index.html" class="">首页</a><a href="category.html" class="">分类</a><a href="product-list.html" class="">全部商品</a><a href="order-list.html" class="">我的订单</a><a href="feedback-list.html" class="">投诉与反馈</a></nav>
+  </div>
+</header>
+<main>
+<section class="page"><div class="container">
+  <div class="page-title"><div><h1>原型页面清单</h1><p>共 28 个页面（不含本清单页），对应 PRD §9 的页面与路由；点击任意一行可预览</p></div></div>
+  <h2 style="font-size:16px;margin-bottom:12px">用户端（17）</h2>
+  <div class="panel"><table class="table"><thead><tr><th>页面</th><th>原型文件</th><th>对应 PRD</th></tr></thead><tbody><tr><td><a href="index.html" style="color:var(--brand);font-weight:600">首页</a></td><td class="mono small">index.html</td><td class="muted small">§5.1 分类导航、推荐商品</td></tr><tr><td><a href="category.html" style="color:var(--brand);font-weight:600">分类页</a></td><td class="mono small">category.html</td><td class="muted small">§5.2 一级/二级分类落地</td></tr><tr><td><a href="product-list.html" style="color:var(--brand);font-weight:600">商品列表</a></td><td class="mono small">product-list.html</td><td class="muted small">§5.3 筛选 / 排序 / 搜索 / 分页</td></tr><tr><td><a href="product-detail.html" style="color:var(--brand);font-weight:600">商品详情</a></td><td class="mono small">product-detail.html</td><td class="muted small">§5.4 SKU 切换、加购、立即购买</td></tr><tr><td><a href="login.html" style="color:var(--brand);font-weight:600">登录</a></td><td class="mono small">login.html</td><td class="muted small">§5.6 用户名 + 密码 + 验证码</td></tr><tr><td><a href="register.html" style="color:var(--brand);font-weight:600">注册</a></td><td class="mono small">register.html</td><td class="muted small">§5.5 用户名唯一、密码强度</td></tr><tr><td><a href="user-center.html" style="color:var(--brand);font-weight:600">个人中心</a></td><td class="mono small">user-center.html</td><td class="muted small">§5.8 账号信息、订单入口</td></tr><tr><td><a href="cart.html" style="color:var(--brand);font-weight:600">购物车</a></td><td class="mono small">cart.html</td><td class="muted small">§5.9 改数量、勾选、合计</td></tr><tr><td><a href="checkout.html" style="color:var(--brand);font-weight:600">确认订单</a></td><td class="mono small">checkout.html</td><td class="muted small">§5.11 地址、明细、运费、提交</td></tr><tr><td><a href="pay.html" style="color:var(--brand);font-weight:600">模拟支付</a></td><td class="mono small">pay.html</td><td class="muted small">§5.12 支付成功 / 取消</td></tr><tr><td><a href="order-list.html" style="color:var(--brand);font-weight:600">订单列表</a></td><td class="mono small">order-list.html</td><td class="muted small">§5.13 状态 Tab、操作按钮</td></tr><tr><td><a href="order-detail.html" style="color:var(--brand);font-weight:600">订单详情</a></td><td class="mono small">order-detail.html</td><td class="muted small">§5.13 时间线、明细、投诉入口</td></tr><tr><td><a href="address-list.html" style="color:var(--brand);font-weight:600">收货地址</a></td><td class="mono small">address-list.html</td><td class="muted small">§5.10 默认地址、增删改</td></tr><tr><td><a href="address-form.html" style="color:var(--brand);font-weight:600">地址编辑</a></td><td class="mono small">address-form.html</td><td class="muted small">§5.10 字段校验</td></tr><tr><td><a href="feedback-list.html" style="color:var(--brand);font-weight:600">我的投诉与反馈</a></td><td class="mono small">feedback-list.html</td><td class="muted small">§5.15 类型/状态筛选</td></tr><tr><td><a href="feedback-form.html" style="color:var(--brand);font-weight:600">提交投诉</a></td><td class="mono small">feedback-form.html</td><td class="muted small">§5.15 仅限本人已购买订单</td></tr><tr><td><a href="feedback-detail.html" style="color:var(--brand);font-weight:600">反馈详情</a></td><td class="mono small">feedback-detail.html</td><td class="muted small">§8.4 状态时间线、卖家回复</td></tr></tbody></table></div>
+  <h2 style="font-size:16px;margin:24px 0 12px">卖家后台（11）</h2>
+  <div class="panel"><table class="table"><thead><tr><th>页面</th><th>原型文件</th><th>对应 PRD</th></tr></thead><tbody><tr><td><a href="admin/login.html" style="color:var(--brand);font-weight:600">后台登录</a></td><td class="mono small">admin/login.html</td><td class="muted small">§6.1 独立会话</td></tr><tr><td><a href="admin/index.html" style="color:var(--brand);font-weight:600">工作台</a></td><td class="mono small">admin/index.html</td><td class="muted small">§6.1 概览卡片（P1）</td></tr><tr><td><a href="admin/category.html" style="color:var(--brand);font-weight:600">分类管理</a></td><td class="mono small">admin/category.html</td><td class="muted small">§6.2 两级分类、删除拦截</td></tr><tr><td><a href="admin/product.html" style="color:var(--brand);font-weight:600">商品管理</a></td><td class="mono small">admin/product.html</td><td class="muted small">§6.3 SPU 上下架</td></tr><tr><td><a href="admin/item.html" style="color:var(--brand);font-weight:600">SKU 管理</a></td><td class="mono small">admin/item.html</td><td class="muted small">§6.3 规格、价格、库存</td></tr><tr><td><a href="admin/account.html" style="color:var(--brand);font-weight:600">用户管理</a></td><td class="mono small">admin/account.html</td><td class="muted small">§6.4 禁用、重置密码</td></tr><tr><td><a href="admin/order.html" style="color:var(--brand);font-weight:600">订单管理</a></td><td class="mono small">admin/order.html</td><td class="muted small">§6.5 筛选、发货、删除</td></tr><tr><td><a href="admin/order-detail.html" style="color:var(--brand);font-weight:600">订单详情（后台）</a></td><td class="mono small">admin/order-detail.html</td><td class="muted small">§6.5 发货、改收货信息</td></tr><tr><td><a href="admin/feedback.html" style="color:var(--brand);font-weight:600">投诉与反馈列表</a></td><td class="mono small">admin/feedback.html</td><td class="muted small">§6.6 待处理优先</td></tr><tr><td><a href="admin/feedback-detail.html" style="color:var(--brand);font-weight:600">投诉处理</a></td><td class="mono small">admin/feedback-detail.html</td><td class="muted small">§6.6 受理/回复/关闭</td></tr><tr><td><a href="admin/log.html" style="color:var(--brand);font-weight:600">操作日志</a></td><td class="mono small">admin/log.html</td><td class="muted small">§6.7 审计、参数脱敏</td></tr></tbody></table></div>
+  <p class="small muted mt-16">原型说明：所有数据为虚构；按钮点击只弹提示，不写库；表单提交被拦截。用于确认信息层级与交互路径，不代替接口联调。</p>
+</div></section></main>
+<footer class="site-footer">
+  <div class="container row" style="justify-content:space-between">
+    <div class="footer-corp">
+      <span class="mark footer-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span>
+      <div>© 2026 星际和平商城 · 星际和平公司传统项目部</div>
+    </div>
+    <div class="row" style="gap:20px">
+      <a href="feedback-form.html">意见反馈</a>
+      <a href="admin/index.html">卖家后台</a>
+      <a href="sitemap.html">原型页面清单</a>
+    </div>
+  </div>
+</footer>
+<script src="assets/app.js"></script>
+</body></html>
