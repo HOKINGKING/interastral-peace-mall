@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>用户管理 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="active">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 用户管理</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>用户管理</h1><p>前台注册用户，可禁用或重置密码</p></div><div class="row"></div></div>
+<div class="panel pad-sm mb-16">
+  <form class="row wrap" data-ok="原型演示：已按条件筛选">
+    <input class="input" style="width:200px" placeholder="用户名 / 手机号">
+    <select class="select" style="width:130px"><option>全部状态</option><option>启用</option><option>禁用</option></select>
+    <button class="btn" type="submit">查询</button>
+  </form>
+</div>
+<div class="panel">
+  <table class="table">
+    <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>手机号</th><th>状态</th><th>订单数</th><th>注册时间</th><th class="right">操作</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1274</td><td>星野</td><td>星野</td><td>138****6688</td><td><span class="badge badge-completed">启用</span></td><td>5</td><td>2026-09-02</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置为随机密码，需通知用户">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用，该用户无法登录前台（1004）">禁用</button></div></td></tr>
+      <tr><td class="mono">1273</td><td>orbit_x</td><td>轨道</td><td>139****2233</td><td><span class="badge badge-completed">启用</span></td><td>2</td><td>2026-10-11</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用">禁用</button></div></td></tr>
+      <tr><td class="mono">1272</td><td>blacksun</td><td>黑日</td><td>137****9911</td><td><span class="badge badge-cancelled">禁用</span></td><td>0</td><td>2026-10-02</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm" data-confirm="原型演示：已启用">启用</button></div></td></tr>
+    </tbody>
+  </table>
+</div></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>

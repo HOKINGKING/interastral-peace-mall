@@ -66,7 +66,7 @@ interastral-peace-mall
 
 ## 五、下一步（第 0 阶段剩余）
 
-- [ ] 补充 9 张业务表 DDL 与测试数据
+- [ ] 补充 10 张业务表 DDL 与测试数据
 - [ ] 建立实体类 `BaseEntity` + 字段自动填充 `MyMetaObjectHandler`
 - [ ] 登录拦截器 `LoginInterceptor` + `WebMvcConfig`
 - [ ] AOP：`@OperLog` 操作日志切面、耗时监控切面
@@ -95,3 +95,13 @@ git push -u origin dev
 | `main` | 可交付版本（答辩时用） |
 | `dev` | 集成开发分支 |
 | `feature/xxx` | 个人功能分支，完成后合入 dev |
+
+## 八、素材与版权说明
+
+本项目为 SSM 框架综合实践的**小组课程作业，非商业项目**，不上线售卖、不对外提供服务。
+
+- 界面中的星际和平公司标识（`prototype/assets/ipc-logo-*.png`）由组员提供，版权归米哈游 /《崩坏：星穹铁道》所有；本项目不声称拥有该标识，仅用于课程作业的界面演示。
+- 除标识外，插画位、渐变底与图标均为自制或 emoji 占位，未使用其他官方美术资源；项目内不涉及真实商品、交易与资金往来。
+- 若仓库公开，建议保留本说明，或将标识文件加入 `.gitignore`，只随作业包提交；对外展示前请替换为自有标识（`prototype/assets/emblem.svg` 为原创兜底徽记）。
+
+细节见 [`prototype/README.md`](prototype/README.md) 的「版权与素材声明」一节。页面本身不显示这些文字，以免影响观感。

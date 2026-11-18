@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分类管理 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="active">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 分类管理</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>分类管理</h1><p>两级分类：一级用于导航，二级用于商品归属</p></div><div class="row"><a class="btn btn-primary btn-sm" href="#" data-demo="原型演示：展开新增分类表单">+ 新增分类</a></div></div>
+<div class="panel">
+  <table class="table">
+    <thead><tr><th>名称</th><th>层级</th><th>描述</th><th>排序</th><th>前台可见</th><th>更新时间</th><th class="right">操作</th></tr></thead>
+    <tbody>
+      <tr><td><b>家居日用</b></td><td><span class="badge">一级</span></td><td class="muted">杯壶、摆件、香薰</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td class="muted" style="padding-left:32px">— 杯壶</td><td><span class="badge">二级</span></td><td class="muted">水杯、保温杯</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：分类下有商品，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td class="muted" style="padding-left:32px">— 摆件</td><td><span class="badge">二级</span></td><td class="muted">桌面摆件、模型</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td><b>文创周边</b></td><td><span class="badge">一级</span></td><td class="muted">徽章、海报、笔记本</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-10 15:20</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td><b>礼盒套装</b></td><td><span class="badge">一级</span></td><td class="muted">暂未上架商品</td><td>6</td><td><label class="switch"><input type="checkbox"><span></span></label></td><td>2026-11-08 09:30</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+    </tbody>
+  </table>
+</div></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>

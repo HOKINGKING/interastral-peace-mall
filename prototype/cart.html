@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>购物车 · 星际和平商城</title><link rel="icon" href="assets/ipc-logo-dark.png"><link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 用户端 · 数据为虚构演示</div>
+  <div><a href="sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="index.html">返回前台</a></div>
+</div>
+<header class="site-header">
+  <div class="corp-strip"><div class="container"><span>星际和平公司 · 传统项目部</span><span>以信用点（Credit）结算 · 全星系 48 小时直达</span></div></div>
+  <div class="container">
+    <div class="brand-row">
+      <a class="brand" href="index.html"><span class="mark brand-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span class="wm"><b>星际和平商城</b><i>INTERASTRAL PEACE MALL</i></span></a>
+      <form class="search" data-ok="原型演示：搜索会跳到商品列表页"><input placeholder="搜索商品，如「水杯」「徽章」"><button type="submit">搜索</button></form>
+      <div class="header-actions">
+        <a href="user-center.html">你好，星野</a>
+        <a class="cart-link" href="cart.html">购物车<span class="count">2</span></a>
+        <a href="login.html" data-demo="原型演示：已退出登录（不会真的登出）">退出</a>
+      </div>
+    </div>
+    <nav class="nav"><a href="index.html" class="">首页</a><a href="category.html" class="">分类</a><a href="product-list.html" class="">全部商品</a><a href="order-list.html" class="">我的订单</a><a href="feedback-list.html" class="">投诉与反馈</a></nav>
+  </div>
+</header>
+<main>
+<section class="page"><div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a><span class="sep">›</span><span>购物车</span></div>
+  <div data-cart>
+  <div class="panel">
+    <div class="cart-row" style="background:#fafbfe;color:var(--muted);font-size:12px">
+      <input type="checkbox" class="checkbox" data-check-all checked>
+      <span style="grid-column:span 2">商品</span><span>单价</span><span>数量</span><span class="right">小计</span>
+    </div>
+    
+  <div class="cart-row" data-price="59">
+    <input type="checkbox" class="checkbox" checked>
+    <div class="thumb ph ">🥤</div>
+    <div>
+      <a href="product-detail.html" style="font-weight:600">星际和平水杯 · 500ml</a>
+      <div class="small muted">规格：500ml 星白</div>
+      <div class="small muted">库存 128</div>
+    </div>
+    <div>¥59.00</div>
+    <div class="qty" data-qty data-min="1" data-max="128">
+      <button data-dec>−</button><input value="1" readonly><button data-inc>+</button>
+    </div>
+    <div class="right"><b style="color:var(--danger)" data-subtotal>¥59.00</b></div>
+  </div>
+  <div class="cart-row" data-price="89">
+    <input type="checkbox" class="checkbox" checked>
+    <div class="thumb ph alt-1">🎒</div>
+    <div>
+      <a href="product-detail.html" style="font-weight:600">星轨帆布包 · 加厚版</a>
+      <div class="small muted">规格：加厚版 · 深空蓝</div>
+      <div class="small muted">库存 64</div>
+    </div>
+    <div>¥89.00</div>
+    <div class="qty" data-qty data-min="1" data-max="64">
+      <button data-dec>−</button><input value="1" readonly><button data-inc>+</button>
+    </div>
+    <div class="right"><b style="color:var(--danger)" data-subtotal>¥89.00</b></div>
+  </div>
+    <div class="empty hide" id="cartEmpty"><div class="icon">🛒</div>购物车还是空的<a href="product-list.html">去逛逛 →</a></div>
+  </div>
+  <div class="cart-bar mt-16 panel">
+    <div class="row">
+      <label class="row small" style="gap:8px"><input type="checkbox" class="checkbox" data-check-all checked> 全选</label>
+      <span class="small muted">已选 <b data-count>2</b> 件</span>
+    </div>
+    <div class="row">
+      <span class="small muted">合计（不含运费）</span>
+      <span class="total-amount" data-total>¥148.00</span>
+      <a class="btn btn-primary" href="checkout.html" style="height:42px;padding:0 26px">去结算</a>
+    </div>
+  </div>
+  </div>
+  <p class="small muted mt-8">运费本期固定 ¥0.00；库存变化会在结算时重新校验。</p>
+</div></section></main>
+<footer class="site-footer">
+  <div class="container row" style="justify-content:space-between">
+    <div class="footer-corp">
+      <span class="mark footer-mark">
+    <img class="ipc-logo" src="assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span>
+      <div>© 2026 星际和平商城 · 星际和平公司传统项目部</div>
+    </div>
+    <div class="row" style="gap:20px">
+      <a href="feedback-form.html">意见反馈</a>
+      <a href="admin/index.html">卖家后台</a>
+      <a href="sitemap.html">原型页面清单</a>
+    </div>
+  </div>
+</footer>
+<script src="assets/app.js"></script>
+</body></html>

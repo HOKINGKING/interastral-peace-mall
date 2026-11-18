@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>后台登录 · 星际和平商城</title>
+<link rel="icon" href="../assets/ipc-logo-dark.png">
+<link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="auth-wrap" style="min-height:calc(100vh - 34px);background:radial-gradient(900px 400px at 20% 0%, #1e2a5a, transparent 60%), #0b1020">
+  <div class="auth-card">
+    <div class="row" style="gap:10px;margin-bottom:18px"><span class="mark auth-mark">
+    <img class="ipc-logo" src="../assets/ipc-logo-dark.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><div><b>星际和平商城 · 卖家后台</b><div class="small muted" style="letter-spacing:.1em;font-size:10px">INTERASTRAL PEACE CORPORATION · 传统项目部</div></div></div>
+    <form data-ok="原型演示：登录成功，会跳转到工作台">
+      <div class="field"><label>账号<span class="req">*</span></label><input class="input" value="admin"></div>
+      <div class="field"><label>密码<span class="req">*</span></label><input class="input" type="password" value="123456"></div>
+      
+<div class="field">
+  <label>图形验证码<span class="req">*</span></label>
+  <div class="row" style="gap:10px">
+    <input class="input" placeholder="请输入右侧 4 位字符" style="flex:1">
+    <div class="captcha-box" data-demo="原型演示：验证码已刷新（真实实现由服务端生成）">K7Q2</div>
+  </div>
+  <div class="help">不区分大小写，5 分钟内有效，校验后立即失效</div>
+</div>
+      <button class="btn btn-primary btn-block" style="height:42px" type="submit">登录后台</button>
+    </form>
+    <p class="small muted center mt-16">演示账号 admin / 123456 · <a href="../index.html" style="color:var(--brand)">返回前台</a></p>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>
