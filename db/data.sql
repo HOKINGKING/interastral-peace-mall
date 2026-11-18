@@ -1,187 +1,167 @@
 -- Interastral Peace Mall（星际和平商城）演示数据
--- 前置条件：已执行 db/schema.sql 建库建表。
--- 统一演示密码：PetStore123!   （BCrypt cost=10，每个账号独立盐）
--- 校验方式：BCryptPasswordEncoder.matches(rawPassword, password_hash)
--- 仅为本地教学数据，不可作为真实部署凭据。
--- 全部写入在一个事务中提交；MySQL 的 DDL 会独立提交，建表回滚不在本文件承诺范围内。
+-- 前置：已执行 db/schema.sql。分类与商品直接取自 HTML 原型（prototype/_build.mjs 的 CATS / PRODUCTS）。
+-- 演示密码统一为 PetStore123!（BCrypt cost=10），前台 xingye / bob，后台 admin。
+-- 说明：item.stock 是"扣除下列示例订单后"的当前库存快照，导入时不再二次扣减，
+--       避免与原型展示的库存数字不一致。
+-- 先在空库执行；重复执行会因唯一索引/主键冲突而失败，重置请重新建库。
 
-SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+SET NAMES utf8mb4;
 SET SESSION time_zone = '+08:00';
-
 USE interastral_mall;
 
 START TRANSACTION;
 
--- ===== 1. 账号 =====
--- admin / alice / bob / disabled，密码统一 PetStore123!
-INSERT INTO store_user
-    (id, username, password_hash, display_name, role, status, email, phone)
+-- ===== 1. 前台账号 =====
+INSERT INTO account (id, username, password, nickname, phone, status, last_login_time) VALUES
+    (1, 'xingye',   '$2a$10$L2rlMCJruRZDIL2pXB.BBOm7LiOuhGNmxWJHJH2n2QQ.BS5JLlsOe', '星野',   '13800000001', 1, NOW() - INTERVAL 2 HOUR),
+    (2, 'bob',      '$2a$10$5f6JeeY8hi.NpV0nS7IbXep9siN.7Df4P8PLQVfhmZdq7EaLl80pm', '陈开拓', '13800000002', 1, NULL),
+    (3, 'disabled', '$2a$10$nyqfhZXjqmbrVaijpcWHVOSo7nwuOgFLyFkkp9EM3wf5y0yiao.lS', '禁用账号', NULL,       0, NULL);
+
+-- ===== 2. 后台账号 =====
+INSERT INTO admin (id, username, password, nickname, status, last_login_time) VALUES
+    (1, 'admin', '$2a$10$TWF0IW1UuBapXm2v.rwh2u9CemHHGhrjybt9CLxmNcXG1t6boGrtK', '平台管理员', 1, NOW() - INTERVAL 1 HOUR);
+
+-- ===== 3. 分类：6 个一级 + 16 个二级（与原型 CATS 一致）=====
+INSERT INTO category (id, parent_id, name, descn, sort, visible) VALUES
+    (1, 0, '家居日用', '把星海搬进日常', 10, 1),
+    (2, 0, '文创周边', '官方授权文创', 20, 1),
+    (3, 0, '服饰箱包', '轨道制衣出品', 30, 1),
+    (4, 0, '模型手办', '深空模型社监修', 40, 1),
+    (5, 0, '数码配件', '轨道外设联名', 50, 1),
+    (6, 0, '礼盒套装', '节日与办公礼盒', 60, 1);
+
+INSERT INTO category (id, parent_id, name, sort, visible) VALUES
+    (101, 1, '杯壶',     10, 1),
+    (102, 1, '摆件',     20, 1),
+    (103, 1, '香薰',     30, 1),
+    (201, 2, '徽章',     10, 1),
+    (202, 2, '海报',     20, 1),
+    (203, 2, '笔记本',   30, 1),
+    (301, 3, '帆布包',   10, 1),
+    (302, 3, 'T恤',      20, 1),
+    (303, 3, '帽子',     30, 1),
+    (401, 4, '舰船模型', 10, 1),
+    (402, 4, '人物手办', 20, 1),
+    (501, 5, '耳机',     10, 1),
+    (502, 5, '鼠标垫',   20, 1),
+    (503, 5, '手机壳',   30, 1),
+    (601, 6, '节日礼盒', 10, 1),
+    (602, 6, '办公套装', 20, 1);
+
+-- ===== 4. 商品 SPU（10 个，与原型 PRODUCTS 一致）=====
+INSERT INTO product (id, category_id, name, brand, descn, detail, main_image, status) VALUES
+    (1,  101, '星际和平水杯 · 500ml', '和平号工作室', '船用级不锈钢内胆，杯盖带星轨浮雕。',
+     '官方周边直营：500ml 容量，双层真空保温 6 小时，杯身烫印星际和平公司徽记。', NULL, 1),
+    (2,  301, '星轨帆布包 · 加厚版', '轨道制衣', '16 安加厚帆布，可装 14 寸笔电。',
+     '加厚帆布 + 内衬分层，肩带加宽不勒肩，正面丝印星轨图案。', NULL, 1),
+    (3,  401, '舰桥模型 · 纪念版', '深空模型社', '1:1000 舰桥模型，附亚克力底座。',
+     '合金压铸一体成型，底座激光刻印编号，适合桌面陈列。', NULL, 1),
+    (4,  201, '驾驶员徽章套装（6 枚）', '和平号工作室', '金属烤漆，六位驾驶员徽记。',
+     '锌合金材质，烤漆工艺，背面蝴蝶扣，随附收藏盒。', NULL, 1),
+    (5,  103, '深空香薰蜡烛 · 冷杉', '慢燃实验室', '冷杉与雪松调，燃烧时长约 30 小时。',
+     '大豆蜡基底，无烟燃烧，玻璃杯可二次利用。', NULL, 1),
+    (6,  202, '命运星图海报 · A2', '星图印社', 'A2 尺寸，星轨夜光油墨。',
+     '200g 哑粉纸，夜光油墨印刷，暗环境下可见星轨。', NULL, 1),
+    (7,  502, '联名机械键盘 · 86 键', '轨道外设', '86 键紧凑布局，热插拔轴座。',
+     '全键无冲，PBT 键帽，附赠星轨主题替换键帽一套。', NULL, 1),
+    (8,  203, '星际和平笔记本 · 方格', '和平号工作室', 'A5 方格本，可 180 度平摊。',
+     '100g 道林纸，硬壳封面，内页 80 页方格。', NULL, 1),
+    (9,  102, '轨道托盘 · 合金', '慢燃实验室', '合金压铸，可作首饰/钥匙托。',
+     '磨砂阳极氧化处理，底部防滑硅胶垫。', NULL, 1),
+    (10, 102, '星球夜灯 · 暖光', '慢燃实验室', '触控三档调光，充电款。',
+     '星球纹理手工上色，USB-C 充电，满电可用约 12 小时。', NULL, 1);
+
+-- ===== 5. 商品 SKU（价格与库存都在这一层）=====
+INSERT INTO item (id, product_id, spec, price, stock, image, version) VALUES
+    (1,  1,  '500ml 星白',            59.00, 128, NULL, 0),
+    (2,  1,  '500ml 深空蓝',          59.00,  96, NULL, 0),
+    (3,  2,  '加厚版 · 深空蓝',        89.00,  64, NULL, 0),
+    (4,  2,  '加厚版 · 曜金',          99.00,  40, NULL, 0),
+    (5,  3,  '纪念版 · 标准',         299.00,  12, NULL, 0),
+    (6,  4,  '6 枚装',                39.00, 240, NULL, 0),
+    (7,  5,  '冷杉 120g',             129.00,  36, NULL, 0),
+    (8,  6,  'A2 无框',                49.00,  88, NULL, 0),
+    (9,  7,  '86 键 · 白轴',          399.00,  21, NULL, 0),
+    (10, 8,  '方格 · A5',              29.00,   0, NULL, 0),
+    (11, 9,  '合金 · 小号',            69.00,  54, NULL, 0),
+    (12, 10, '暖光 · 充电款',         159.00,  18, NULL, 0);
+
+-- ===== 6. 收货地址 =====
+INSERT INTO address (id, account_id, receiver, phone, province, city, district, detail, is_default) VALUES
+    (1, 1, '星野', '13800000001', '湖南省', '长沙市', '岳麓区', '星轨大道 88 号和平公寓 3 栋 502', 1),
+    (2, 1, '星野', '13800000001', '湖南省', '长沙市', '开福区', '开拓路 12 号 2 单元 901', 0);
+
+-- ===== 7. 订单（覆盖 5 种状态）=====
+INSERT INTO orders
+    (id, order_no, account_id, total_amount, freight_amount, status,
+     receiver_name, receiver_phone, receiver_province, receiver_city, receiver_district, receiver_detail,
+     courier_company, tracking_no, pay_time, ship_time, finish_time, cancel_time, create_time)
 VALUES
-    (1, 'alice',   '$2a$10$L2rlMCJruRZDIL2pXB.BBOm7LiOuhGNmxWJHJH2n2QQ.BS5JLlsOe', '林星野', 'CUSTOMER', 'ENABLED',  'alice@example.test',   NULL),
-    (2, 'bob',     '$2a$10$5f6JeeY8hi.NpV0nS7IbXep9siN.7Df4P8PLQVfhmZdq7EaLl80pm', '陈开拓', 'CUSTOMER', 'ENABLED',  'bob@example.test',     NULL),
-    (3, 'disabled','$2a$10$nyqfhZXjqmbrVaijpcWHVOSo7nwuOgFLyFkkp9EM3wf5y0yiao.lS', '禁用教学账号', 'CUSTOMER', 'DISABLED', 'disabled@example.test', NULL),
-    (4, 'admin',   '$2a$10$TWF0IW1UuBapXm2v.rwh2u9CemHHGhrjybt9CLxmNcXG1t6boGrtK', '商城管理员', 'ADMIN',   'ENABLED',  'admin@example.test',   NULL);
+    (1, '20261117201501', 1, 148.00, 0.00, 'PENDING_PAYMENT', '星野', '13800000001', '湖南省', '长沙市', '岳麓区', '星轨大道 88 号和平公寓 3 栋 502',
+     NULL, NULL, NULL, NULL, NULL, NULL, NOW() - INTERVAL 20 MINUTE),
+    (2, '20261116102133', 1, 129.00, 0.00, 'COMPLETED', '星野', '13800000001', '湖南省', '长沙市', '岳麓区', '星轨大道 88 号和平公寓 3 栋 502',
+     '星际速运', 'IPC202611160001', NOW() - INTERVAL 30 HOUR, NOW() - INTERVAL 20 HOUR, NOW() - INTERVAL 2 HOUR, NULL, NOW() - INTERVAL 31 HOUR),
+    (3, '20261115093020', 1,  69.00, 0.00, 'CANCELLED', '星野', '13800000001', '湖南省', '长沙市', '岳麓区', '星轨大道 88 号和平公寓 3 栋 502',
+     NULL, NULL, NULL, NULL, NULL, NOW() - INTERVAL 50 HOUR, NOW() - INTERVAL 52 HOUR),
+    (4, '20261117084412', 1, 299.00, 0.00, 'SHIPPED', '星野', '13800000001', '湖南省', '长沙市', '开福区', '开拓路 12 号 2 单元 901',
+     '星际速运', 'IPC202611170002', NOW() - INTERVAL 26 HOUR, NOW() - INTERVAL 3 HOUR, NULL, NULL, NOW() - INTERVAL 27 HOUR),
+    (5, '20261117201948', 2,  78.00, 0.00, 'PAID', '陈开拓', '13800000002', '上海市', '上海市', '浦东新区', '航道街 10 号 1 单元 601',
+     NULL, NULL, NOW() - INTERVAL 8 MINUTE, NULL, NULL, NULL, NOW() - INTERVAL 15 MINUTE);
 
--- ===== 2. 分类（先一级，后二级）=====
-INSERT INTO category (id, code, parent_id, name, sort_order) VALUES
-    (1, 'IPC_DIGITAL', NULL, '星轨数码', 30),
-    (2, 'IPC_FOOD',    NULL, '和平食刻', 20),
-    (3, 'IPC_MERCH',   NULL, '舰载周边', 10);
+-- ===== 8. 订单明细（全快照）=====
+INSERT INTO order_item (order_id, item_id, product_name, spec, price, quantity, image, create_time) VALUES
+    (1, 1, '星际和平水杯 · 500ml', '500ml 星白',      59.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
+    (1, 3, '星轨帆布包 · 加厚版', '加厚版 · 深空蓝',   89.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
+    (2, 7, '深空香薰蜡烛 · 冷杉', '冷杉 120g',        129.00, 1, NULL, NOW() - INTERVAL 31 HOUR),
+    (3, 11, '轨道托盘 · 合金',    '合金 · 小号',        69.00, 1, NULL, NOW() - INTERVAL 52 HOUR),
+    (4, 5, '舰桥模型 · 纪念版',   '纪念版 · 标准',     299.00, 1, NULL, NOW() - INTERVAL 27 HOUR),
+    (5, 6, '驾驶员徽章套装（6 枚）', '6 枚装',           39.00, 2, NULL, NOW() - INTERVAL 15 MINUTE);
 
-INSERT INTO category (id, code, parent_id, name, sort_order) VALUES
-    (101, 'IPC_DIGITAL_POWER',    1, '能源配件', 10),
-    (102, 'IPC_DIGITAL_AUDIO',    1, '影音装备', 20),
-    (201, 'IPC_FOOD_COFFEE',      2, '咖啡冲饮', 10),
-    (202, 'IPC_FOOD_SNACK',       2, '零食甜点', 20),
-    (301, 'IPC_MERCH_PLUSH',      3, '毛绒公仔', 10),
-    (302, 'IPC_MERCH_STATIONERY', 3, '文具杂货', 20);
+-- ===== 9. 购物车（xingye 当前选购）=====
+INSERT INTO cart (account_id, item_id, quantity) VALUES
+    (1, 6, 2),
+    (1, 8, 1);
 
--- ===== 3. 商品 =====
--- 14 个上架（其中 1 个零库存用于售罄提示）、1 个下架用于后台筛选与上架练习。
--- 图片统一使用占位图，等有真实素材再把 cover_image 换成 images/products/<SKU>/1.jpg。
-INSERT INTO product
-    (id, sku, category_id, name, summary, description, cover_image, price, stock, status, sort_order, version)
+-- ===== 10. 投诉与反馈（与原型 FEEDBACKS 一致）=====
+INSERT INTO feedback
+    (type, account_id, order_id, category, content, contact, status,
+     reply, reply_admin_id, reply_time, close_reason, create_time)
 VALUES
-    (1,  'IPC-CB-01', 101, '曜金磁吸充电宝 20000mAh', '星轨数码能源主推款，支持边充边放。', '教学商品：20000mAh 磁吸无线充电宝，用于演示正常购买、加购与库存扣减。商品及价格仅用于教学演示。', 'images/products/placeholder-1.jpg', 219.00, 40, 'ON_SALE', 10, 0),
-    (2,  'IPC-CB-02', 101, '星际探索者氮化镓充电器 65W', '双口快充，出差通勤都够用。', '教学商品：65W 氮化镓充电器，用于演示两位小数金额与常规下单。', 'images/products/placeholder-1.jpg', 149.00, 60, 'ON_SALE', 20, 0),
-    (3,  'IPC-HP-01', 102, '星际漫游者主动降噪耳机', '长续航降噪，影音装备类目主推。', '教学商品：主动降噪蓝牙耳机，用于演示高价商品下单与订单金额计算。', 'images/products/placeholder-1.jpg', 599.00, 25, 'ON_SALE', 30, 0),
-    (4,  'IPC-HP-02', 102, '开拓者轻量蓝牙耳机', '上架但零库存，用于售罄提示与加购拦截。', '教学商品：轻量蓝牙耳机，库存为 0，专门验证"售罄"分支与前端禁用按钮。', 'images/products/placeholder-1.jpg', 199.00, 0, 'ON_SALE', 40, 0),
-    (5,  'IPC-CF-01', 201, '星穹挂耳咖啡 12 包', '中深烘焙，办公室常备装。', '教学商品：12 包挂耳咖啡，用于演示购物车合并数量与整车下单。', 'images/products/placeholder-1.jpg', 79.00, 200, 'ON_SALE', 50, 0),
-    (6,  'IPC-CF-02', 201, '星穹挂耳咖啡 24 包', '整箱囤货款，单价更划算。', '教学商品：24 包挂耳咖啡，用于演示数量修改与库存不足场景。', 'images/products/placeholder-1.jpg', 149.00, 120, 'ON_SALE', 60, 0),
-    (7,  'IPC-CF-03', 201, '帕姆拿铁冷萃液', '开瓶即饮，冷萃工艺。', '教学商品：冷萃咖啡液，用于演示低库存商品的购买上限。', 'images/products/placeholder-1.jpg', 89.00, 80, 'ON_SALE', 70, 0),
-    (8,  'IPC-SN-01', 202, '星际补给站零食大礼包', '出差补给一站配齐。', '教学商品：零食大礼包，用于演示多件商品同单与金额合计。', 'images/products/placeholder-1.jpg', 129.00, 50, 'ON_SALE', 80, 0),
-    (9,  'IPC-SN-02', 202, '黑塔曲奇礼盒', '黄油曲奇，附赠贴纸。', '教学商品：曲奇礼盒，用于演示购物车多商品勾选与部分结算。', 'images/products/placeholder-1.jpg', 69.00, 35, 'ON_SALE', 90, 0),
-    (10, 'IPC-PL-01', 301, '帕姆毛绒公仔 30cm', '舰载周边人气款。', '教学商品：30cm 毛绒公仔，用于演示周边类商品的浏览与下单。', 'images/products/placeholder-1.jpg', 129.00, 80, 'ON_SALE', 100, 0),
-    (11, 'IPC-PL-02', 301, '帕姆毛绒公仔 50cm', '加大版，抱起来刚好。', '教学商品：50cm 毛绒公仔，用于演示与 30cm 款的对比浏览。', 'images/products/placeholder-1.jpg', 229.00, 30, 'ON_SALE', 110, 0),
-    (12, 'IPC-PL-03', 302, '星穹列车徽章套装', '五枚装，金属烤漆。', '教学商品：徽章套装，用于演示低单价商品的数量累加。', 'images/products/placeholder-1.jpg', 59.00, 150, 'ON_SALE', 120, 0),
-    (13, 'IPC-ST-01', 302, '星穹主题硬壳笔记本', 'A5 尺寸，内页可平摊。', '教学商品：硬壳笔记本，用于演示文具类商品的详情页。', 'images/products/placeholder-1.jpg', 45.00, 100, 'ON_SALE', 130, 0),
-    (14, 'IPC-ST-02', 302, '星际和平商社钢笔', '金属笔身，附礼盒。', '教学商品：商社钢笔，用于演示礼盒类商品的加购流程。', 'images/products/placeholder-1.jpg', 128.00, 20, 'ON_SALE', 140, 0),
-    (15, 'IPC-ST-03', 302, '限定亚克力立牌', '桌面小摆件，限量发售。', '教学商品：亚克力立牌，用于演示低库存商品的购买上限提示。', 'images/products/placeholder-1.jpg', 39.00, 60, 'ON_SALE', 150, 0),
-    (16, 'IPC-LTD-01', 301, '开拓者典藏礼盒', '下架商品，不得出现在用户端上架列表。', '教学商品：典藏礼盒，状态 DRAFT，用于验证后台筛选与"上架"操作。', 'images/products/placeholder-1.jpg', 999.00, 5, 'DRAFT', 160, 0);
+    ('COMPLAINT', 1, 2, 'QUALITY',
+     '蜡烛收到时玻璃杯有一道细裂纹，外包装完好，应该是出厂检验没发现。希望换一个或者退部分款。',
+     NULL, 'REPLIED',
+     '已核实为运输前瑕疵，为您补发一件并赠送香薰试用装，预计 48 小时内发出。',
+     1, NOW() - INTERVAL 26 HOUR, NULL, NOW() - INTERVAL 28 HOUR),
+    ('FEEDBACK', 1, NULL, 'OTHER',
+     '希望商品详情页能标出模型的实际尺寸，现在只能靠图片估计，容易买大。',
+     '13800000001', 'PENDING',
+     NULL, NULL, NULL, NULL, NOW() - INTERVAL 4 HOUR);
 
--- ===== 4. 商品相册 =====
--- 只给前 6 个商品配相册，其余商品详情页按规约回退到封面，正好覆盖两种渲染分支。
-INSERT INTO product_image (id, product_id, image_path, alt_text, sort_order) VALUES
-    (1,  1, 'images/products/placeholder-1.jpg', '曜金磁吸充电宝·展示图1', 10),
-    (2,  1, 'images/products/placeholder-2.jpg', '曜金磁吸充电宝·展示图2', 20),
-    (3,  2, 'images/products/placeholder-1.jpg', '星际探索者氮化镓充电器·展示图1', 10),
-    (4,  2, 'images/products/placeholder-2.jpg', '星际探索者氮化镓充电器·展示图2', 20),
-    (5,  3, 'images/products/placeholder-1.jpg', '星际漫游者主动降噪耳机·展示图1', 10),
-    (6,  3, 'images/products/placeholder-2.jpg', '星际漫游者主动降噪耳机·展示图2', 20),
-    (7,  4, 'images/products/placeholder-1.jpg', '开拓者轻量蓝牙耳机·展示图1', 10),
-    (8,  4, 'images/products/placeholder-2.jpg', '开拓者轻量蓝牙耳机·展示图2', 20),
-    (9,  5, 'images/products/placeholder-1.jpg', '星穹挂耳咖啡 12 包·展示图1', 10),
-    (10, 5, 'images/products/placeholder-2.jpg', '星穹挂耳咖啡 12 包·展示图2', 20),
-    (11, 6, 'images/products/placeholder-1.jpg', '星穹挂耳咖啡 24 包·展示图1', 10),
-    (12, 6, 'images/products/placeholder-2.jpg', '星穹挂耳咖啡 24 包·展示图2', 20);
-
--- ===== 5. 订单 =====
--- alice 4 单、bob 2 单，覆盖五种状态；已支付订单统一 MOCK 凭证。
--- 时间以本次导入为基准向前推算，状态时间严格满足 ck_order_time_sequence。
--- 外键全部按 username / sku 查找，不写死自增 id。
-INSERT INTO sales_order
-    (order_no, user_id, status, total_amount, receiver_name, receiver_phone, receiver_address,
-     created_at, payment_method, payment_no, paid_at, cancelled_at, shipped_at, completed_at)
-SELECT t.order_no,
-       u.id,
-       t.status,
-       t.total_amount,
-       t.receiver_name,
-       t.receiver_phone,
-       t.receiver_address,
-       t.created_at,
-       CASE WHEN t.status IN ('PAID', 'SHIPPED', 'COMPLETED') THEN 'MOCK' END,
-       CASE WHEN t.status IN ('PAID', 'SHIPPED', 'COMPLETED') THEN CONCAT('MOCK-', t.order_no) END,
-       CASE WHEN t.status IN ('PAID', 'SHIPPED', 'COMPLETED') THEN DATE_ADD(t.created_at, INTERVAL 10 MINUTE) END,
-       CASE WHEN t.status = 'CANCELLED' THEN DATE_ADD(t.created_at, INTERVAL 30 MINUTE) END,
-       CASE WHEN t.status IN ('SHIPPED', 'COMPLETED') THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR) END,
-       CASE WHEN t.status = 'COMPLETED' THEN DATE_ADD(t.created_at, INTERVAL 72 HOUR) END
-FROM (
-    SELECT 'DEMO-202611-AL-01' AS order_no, 'alice' AS username, 'PENDING_PAYMENT' AS status,
-           217.00 AS total_amount, '林星野' AS receiver_name, '13800000001' AS receiver_phone,
-           '教学示例地址：星轨市和平区开拓路 1 号（非真实收货地址）' AS receiver_address,
-           NOW() - INTERVAL 1 HOUR AS created_at
-    UNION ALL SELECT 'DEMO-202611-AL-02', 'alice', 'PAID',     818.00, '林星野', '13800000001', '教学示例地址：星轨市和平区开拓路 1 号（非真实收货地址）', NOW() - INTERVAL 25 HOUR
-    UNION ALL SELECT 'DEMO-202611-AL-03', 'alice', 'SHIPPED',  218.00, '林星野', '13800000001', '教学示例地址：星轨市和平区开拓路 1 号（非真实收货地址）', NOW() - INTERVAL 72 HOUR
-    UNION ALL SELECT 'DEMO-202611-AL-04', 'alice', 'COMPLETED',174.00, '林星野', '13800000001', '教学示例地址：星轨市和平区开拓路 1 号（非真实收货地址）', NOW() - INTERVAL 168 HOUR
-    UNION ALL SELECT 'DEMO-202611-BO-01', 'bob',   'CANCELLED',599.00, '陈开拓', '13800000002', '教学示例地址：星轨市和平区开拓路 2 号（非真实收货地址）', NOW() - INTERVAL 48 HOUR
-    UNION ALL SELECT 'DEMO-202611-BO-02', 'bob',   'PAID',     218.00, '陈开拓', '13800000002', '教学示例地址：星轨市和平区开拓路 2 号（非真实收货地址）', NOW() - INTERVAL 49 HOUR
-) t
-JOIN store_user u ON u.username = t.username;
-
--- ===== 6. 订单明细（成交快照）=====
-INSERT INTO sales_order_item
-    (order_id, product_id, sku_snapshot, product_name_snapshot, cover_image_snapshot,
-     unit_price, quantity, line_amount)
-SELECT o.id,
-       p.id,
-       p.sku,
-       p.name,
-       p.cover_image,
-       t.unit_price,
-       t.quantity,
-       t.unit_price * t.quantity
-FROM (
-    SELECT 'DEMO-202611-AL-01' AS order_no, 'IPC-CF-01' AS sku,  2 AS quantity,  79.00 AS unit_price
-    UNION ALL SELECT 'DEMO-202611-AL-01', 'IPC-PL-03', 1,  59.00
-    UNION ALL SELECT 'DEMO-202611-AL-02', 'IPC-CB-01', 1, 219.00
-    UNION ALL SELECT 'DEMO-202611-AL-02', 'IPC-HP-01', 1, 599.00
-    UNION ALL SELECT 'DEMO-202611-AL-03', 'IPC-SN-01', 1, 129.00
-    UNION ALL SELECT 'DEMO-202611-AL-03', 'IPC-CF-03', 1,  89.00
-    UNION ALL SELECT 'DEMO-202611-AL-04', 'IPC-PL-01', 1, 129.00
-    UNION ALL SELECT 'DEMO-202611-AL-04', 'IPC-ST-01', 1,  45.00
-    UNION ALL SELECT 'DEMO-202611-BO-01', 'IPC-HP-01', 1, 599.00
-    UNION ALL SELECT 'DEMO-202611-BO-02', 'IPC-CF-02', 1, 149.00
-    UNION ALL SELECT 'DEMO-202611-BO-02', 'IPC-SN-02', 1,  69.00
-) t
-JOIN sales_order o ON o.order_no = t.order_no
-JOIN product p ON p.sku = t.sku;
-
--- ===== 7. 按已成交订单扣减库存 =====
--- 与业务约定一致：下单即扣减，取消订单已恢复，因此 CANCELLED 不计入。
--- 同时显式递增 product.version，模拟业务层"写商品必升版本"的约定。
-UPDATE product p
-JOIN (
-    SELECT oi.sku_snapshot AS sku, SUM(oi.quantity) AS qty
-    FROM sales_order_item oi
-    JOIN sales_order o ON o.id = oi.order_id
-    WHERE o.status <> 'CANCELLED'
-    GROUP BY oi.sku_snapshot
-) s ON s.sku = p.sku
-SET p.stock = p.stock - s.qty,
-    p.version = p.version + 1;
-
--- ===== 8. 当前购物车 =====
--- 与历史订单彼此独立：已下单的商品不会再出现在购物车里。
-INSERT INTO cart_item (user_id, product_id, quantity, version)
-SELECT u.id, p.id, t.quantity, 0
-FROM (
-    SELECT 'alice' AS username, 'IPC-HP-01' AS sku, 1 AS quantity
-    UNION ALL SELECT 'alice', 'IPC-CF-01', 3
-    UNION ALL SELECT 'alice', 'IPC-PL-01', 1
-    UNION ALL SELECT 'bob',   'IPC-SN-01', 2
-    UNION ALL SELECT 'bob',   'IPC-CF-02', 1
-) t
-JOIN store_user u ON u.username = t.username
-JOIN product p ON p.sku = t.sku;
-
--- ===== 9. 操作日志示例 =====
--- 演示后台日志列表的展示效果；真实数据由 @OperLog 切面在运行时写入。
-INSERT INTO oper_log
-    (operator, module, action, method, request_uri, params, ip, cost_ms, success, created_at)
+-- ===== 11. 操作日志示例 =====
+INSERT INTO sys_oper_log
+    (admin_id, admin_name, module, action, target_id, request_uri, request_method, request_params,
+     ip, success, cost_ms, create_time)
 VALUES
-    ('admin', '商品管理', '新增商品', 'AdminProductController.create', '/admin/product/create',
-     'sku=IPC-LTD-01', '127.0.0.1', 38, 1, NOW() - INTERVAL 3 HOUR),
-    ('admin', '订单管理', '订单发货', 'AdminOrderController.ship', '/admin/order/ship',
-     'orderNo=DEMO-202611-AL-03', '127.0.0.1', 52, 1, NOW() - INTERVAL 2 HOUR);
+    (1, 'admin', '订单管理', '发货', 4, '/admin/order/ship', 'POST',
+     '{"orderId":4,"courierCompany":"星际速运","trackingNo":"IPC202611170002"}',
+     '127.0.0.1', 1, 42, NOW() - INTERVAL 3 HOUR),
+    (1, 'admin', '商品管理', '上架', 10, '/admin/product/toggle', 'POST',
+     '{"productId":10,"status":1}',
+     '127.0.0.1', 1, 18, NOW() - INTERVAL 2 HOUR);
+
+INSERT INTO sys_check (name) VALUES ('星际和平商城初始化成功');
 
 COMMIT;
 
 -- ===== 导入后自检 =====
--- SELECT COUNT(*) FROM store_user;        -- 期望 4
--- SELECT COUNT(*) FROM category;          -- 期望 9
--- SELECT COUNT(*) FROM product;           -- 期望 16
--- SELECT COUNT(*) FROM sales_order;       -- 期望 6
--- SELECT COUNT(*) FROM sales_order_item;  -- 期望 11
--- SELECT COUNT(*) FROM cart_item;         -- 期望 5
--- SELECT sku, stock, version FROM product ORDER BY id;   -- IPC-CF-01 期望 198/1
+-- SELECT COUNT(*) FROM account;      -- 3
+-- SELECT COUNT(*) FROM admin;        -- 1
+-- SELECT COUNT(*) FROM category;     -- 22（6 一级 + 16 二级）
+-- SELECT COUNT(*) FROM product;      -- 10
+-- SELECT COUNT(*) FROM item;         -- 12
+-- SELECT COUNT(*) FROM orders;       -- 5
+-- SELECT COUNT(*) FROM order_item;   -- 6
+-- SELECT COUNT(*) FROM feedback;     -- 2
+-- 校验订单总额 = Σ(明细价 × 数量)：
+-- SELECT o.order_no, o.total_amount, SUM(i.price * i.quantity) detail_sum
+-- FROM orders o JOIN order_item i ON i.order_id = o.id GROUP BY o.id;

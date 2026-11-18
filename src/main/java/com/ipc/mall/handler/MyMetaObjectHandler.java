@@ -1,39 +1,35 @@
 package com.ipc.mall.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 /**
- * 公共字段自动填充器（IoC 体现点：由 Spring 注入到 MyBatis-Plus 的全局配置中）。
+ * 公共字段自动填充（PRD §7.1）。
  * <p>
- * 填充字段名必须与 {@link com.ipc.mall.common.entity.BaseEntity} 的属性名一致：
- * <b>createdAt / updatedAt</b>。
+ * 填充的字段名必须与 {@link com.ipc.mall.common.entity.BaseEntity} 的属性名一致：
+ * <b>createTime / updateTime / deleted</b>。
  * <p>
- * strictInsertFill / strictUpdateFill 的行为：
- * <ul>
- *     <li>strict* 系列会先判断当前属性是否有 setter、是否已经赋过值；</li>
- *     <li>已手动赋值时不再覆盖，避免把业务代码显式设置的时间冲掉。</li>
- * </ul>
- * 注意：填充是"Java 侧兜底"，数据库列本身还有 DEFAULT CURRENT_TIMESTAMP，
- * 所以即使填充失效也不会报错——验收时必须看控制台 SQL 里是否带上了这两列。
+ * deleted 必须在 insert 时显式填 0：数据库列虽然是 {@code DEFAULT 0}，
+ * 但 MyBatis-Plus 会把实体里的 null 当成 SQL 的 NULL 插进去，触发 NOT NULL 约束错误。
  */
-@Slf4j
 @Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
         LocalDateTime now = LocalDateTime.now();
-        this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
-        this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
+        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
+        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
+        if (metaObject.getValue("deleted") == null) {
+            this.strictInsertFill(metaObject, "deleted", Integer.class, 0);
+        }
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        this.strictUpdateFill(metaObject, "updatedAt", LocalDateTime.class, LocalDateTime.now());
+        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
     }
 }

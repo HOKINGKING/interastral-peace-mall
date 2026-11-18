@@ -4,38 +4,42 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 业务实体基类：只放三张八表共有的列，其余字段由子类声明。
- * <p>
- * 对应数据库列（注意是 created_at / updated_at，不是 create_time）：
+ * 业务实体基类，对应 PRD §7.1 的公共字段约定。
  * <ul>
- *     <li>id          BIGINT AUTO_INCREMENT</li>
- *     <li>created_at  DATETIME，插入时自动填充</li>
- *     <li>updated_at  DATETIME，插入与更新时自动填充</li>
+ *     <li>id          BIGINT AUTO_INCREMENT，MP {@code id-type: auto}</li>
+ *     <li>create_time 插入时自动填充</li>
+ *     <li>update_time 插入与更新时自动填充</li>
+ *     <li>deleted     逻辑删除，0 正常 / 1 已删除，查询时 MP 自动追加 {@code deleted = 0}</li>
  * </ul>
- * <p>
- * 这里刻意<b>没有 deleted 字段</b>：本项目不使用逻辑删除，
- * 商品用 status 上下架、订单用 status 取消，由 CHECK 与外键约束兜底。
+ * 注意：order_item 与 sys_oper_log 没有 update_time / deleted，
+ * 这两个实体<b>不要继承本类</b>，各自声明字段。
  */
 @Data
 public abstract class BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** 主键，与表的 AUTO_INCREMENT 对应 */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /** 创建时间，由 MyMetaObjectHandler 在 insert 时填充 */
-    @TableField(value = "created_at", fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
 
-    /** 更新时间，由 MyMetaObjectHandler 在 insert / update 时填充 */
-    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+
+    /**
+     * 逻辑删除标记。查询自动带 deleted = 0，deleteById 会改成 UPDATE deleted = 1。
+     * 唯一索引与逻辑删除的坑见 PRD §7.5：account/admin 的唯一键建在 (username, deleted)。
+     */
+    @TableLogic(value = "0", delval = "1")
+    @TableField(value = "deleted", fill = FieldFill.INSERT)
+    private Integer deleted;
 }
