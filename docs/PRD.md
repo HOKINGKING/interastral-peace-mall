@@ -1,8 +1,8 @@
 # 星际和平商城 · 产品需求文档（PRD）
 
 > Interastral Peace Mall — Product Requirements Document
-> 版本：v1.0（评审稿）
-> 日期：2026-11-17
+> 版本：v1.1（评审稿）
+> 日期：2026-11-19
 > 范围：用户端商城（前台）+ 后台管理系统（卖家端）
 > 关联文档：`README.md`（技术栈与目录）、`db/init.sql`（建表脚本）、`docs/api.md`（接口表，可由本文 §10 导出）
 > 读者：开发（前端/后端）、测试、答辩评委
@@ -68,10 +68,10 @@
 
 | 域 | 功能 |
 |---|---|
-| 前台 · 商品 | 首页、分类页、商品列表（筛选/排序/搜索/分页）、商品详情与 SKU 切换、加购、立即购买 |
+| 前台 · 商品 | 首页、分类页、商品列表（筛选/排序/搜索/分页/仅看有货）、商品详情（相册、参数表）与 SKU 切换、加购、立即购买 |
 | 前台 · 用户 | 注册、登录、图形验证码、登出、个人中心、修改密码 |
-| 前台 · 交易 | 购物车（加购/改量/删除/勾选）、收货地址（增删改查/设默认）、结算下单、模拟支付、订单列表/详情/取消/确认收货 |
-| 前台 · 售后 | 订单投诉（仅限本人已购买订单）、意见反馈、我的投诉与反馈 |
+| 前台 · 交易 | 购物车（加购/改量/删除/勾选）、收货地址（增删改查/设默认）、结算下单（含订单备注）、模拟支付、订单列表/详情/取消/确认收货/删除终态订单 |
+| 前台 · 售后 | 订单投诉（仅限本人已购买订单）、意见反馈、投诉补充说明与确认已解决、我的投诉与反馈 |
 | 后台 · 商品 | 分类管理（增删改查）、商品管理（增删改查、上下架、主图上传） |
 | 后台 · 用户 | 用户列表/详情/修改/禁用/重置密码 |
 | 后台 · 订单 | 列表/详情/筛选/修改收货信息/发货（填物流单号）/删除 |
@@ -80,16 +80,17 @@
 
 ### 2.2 加分项（P1）
 
-1. 列表价格排序（综合 / 价格升 / 价格降）。
-2. 超时未支付自动关单（定时任务，默认 30 分钟）。
-3. 后台工作台概览（今日订单数、待发货数、在售商品数）。
-4. 订单状态时间线可视化。
-5. 投诉/反馈支持图片附件（≤3 张，复用图片上传）。
-6. 后台工作台显示待处理投诉数。
+1. 超时未支付自动关单（定时任务，默认 30 分钟）。
+2. 后台工作台概览（今日订单数、待发货数、在售商品数）。
+3. 订单状态时间线可视化。
+4. 投诉/反馈支持图片附件（≤3 张，复用图片上传）。
+5. 后台工作台显示待处理投诉数。
+
+> 「列表价格排序」原为 P1，已随原型对齐升为 P0，见 §5.3、§14.3 Q1。
 
 ### 2.3 明确不做（P2）
 
-优惠券、积分、评价、收藏、发票、退款/退货、在线客服/即时聊天、多规格多图相册、批量导入导出、卖家注册与权限分级（后台只有一种角色）。
+优惠券、积分、评价、收藏、发票、退款/退货、在线客服/即时聊天、**SKU 级多图相册**（SPU 级相册与商品参数表本期做，见 §5.4）、批量导入导出、卖家注册与权限分级（后台只有一种角色）。
 
 ---
 
@@ -186,7 +187,7 @@ com.ipc.mall
 | 内容 | 轮播/推荐位（静态可接受）、分类入口、推荐商品（`product.status=1` 按更新时间取 8 条） | `product` + `item` |
 | 底部 | 版权、帮助链接、意见反馈入口（静态入口，跳 `/feedback/form`） | — |
 
-> 商品卡片统一展示：主图、名称、最低价、库存状态（有货/售罄）。最低价 = 该 SPU 下所有 SKU 的 `price` 最小值。
+> 商品卡片统一展示：主图、名称、最低价、已售件数、库存状态（有货/售罄）。最低价 = 该 SPU 下所有 SKU 的 `price` 最小值；已售件数 = `product.sales`（累计已售件数，口径见 §7.6）。
 
 ### 5.2 分类页
 
@@ -194,7 +195,8 @@ com.ipc.mall
 - 展示：
   - 落在一级分类：顶部列出该分类下全部二级分类入口（按 `sort` 升序），下方为该一级分类**含全部子分类**的商品；
   - 落在二级分类：展示同级二级分类切换 + 当前分类商品，面包屑为 `首页 › 一级 › 二级`；
-  - 商品区复用商品卡（主图、名称、最低价、库存状态），分页 `page`/`size`（默认 12）。
+  - 商品区复用商品卡（主图、名称、最低价、已售件数、库存状态），分页 `page`/`size`（默认 12）；
+  - 排序：与商品列表共用 `sort`（`default` / `priceAsc` / `priceDesc` / `newest`，见 §5.3），默认 `default`；
 - 规则：
   - `id` 不存在或已逻辑删除 → 404 页面；
   - `category.visible=0` → 302 到 `/product/list` 并提示「该分类已下架」；
@@ -204,16 +206,20 @@ com.ipc.mall
 ### 5.3 商品列表
 
 - 入口：分类页「查看全部」、首页「查看更多」、搜索框、面包屑。
-- 筛选：`categoryId`（含其子分类）、`keyword`（商品名/描述模糊匹配）。
+- 筛选：`categoryId`（含其子分类）、`keyword`（商品名/描述模糊匹配）、`onlyInStock`（仅看有货：该 SPU 至少一个 SKU `stock>0`，默认关闭）。
 - 搜索：关键词匹配 `product.name`、`product.descn`；空关键词回到全量；关键词 trim + 长度 ≤ 50。`/search` 与 `/product/list` 共用同一视图与同一套筛选逻辑。
 - 分页：`page` 默认 1，`size` 默认 12，上限 60；返回总数。
-- 排序：默认 `product.update_time DESC`；【P1】支持 `priceAsc`/`priceDesc`（按最低价）。
-- 展示：主图、名称、最低价、库存状态、分类名。
-- 规则：仅展示 `product.status=1` 且所属 `category.visible=1`；无 SKU 的 SPU 不展示。
+- 排序：`sort` ∈ `default`（`product.update_time DESC`，默认）/ `priceAsc` / `priceDesc`（两者按最低价）/ `newest`（`product.create_time DESC`）；排序字段与方向走白名单枚举映射，禁止拼接 SQL。
+- 已选条件：`keyword`、`categoryId` 以可移除的 chips 展示并提供「清空」；`onlyInStock` 以勾选框表示。
+- 展示：主图、名称、最低价、已售件数、库存状态、分类名。
+- 规则：仅展示 `product.status=1` 且所属 `category.visible=1`；无 SKU 的 SPU 不展示；`onlyInStock=1` 必须在 SQL 层用 `EXISTS` 过滤，不得查完再筛（否则分页总数与页大小失真）。
 
 ### 5.4 商品详情与 SKU 切换
 
-- 展示：主图、名称、品牌、短描述、详情（可为空）、规格列表、价格（随规格变化）、库存、分类面包屑（`首页 › 一级 › 二级`，各级可点击；分类失效时退化为 `首页 › 商品列表`）。
+- 展示：主图与相册（≤5 张，点击缩略图切换主图）、名称、品牌、短描述、商品参数表、详情（可为空）、规格列表、价格（随规格变化）、库存、已售件数、分类面包屑（`首页 › 一级 › 二级`，各级可点击；分类失效时退化为 `首页 › 商品列表`）。
+- 相册：`product.images` 逗号分隔 URL（≤5 张，首张建议与 `main_image` 一致）；无相册时退化为单张主图；缩略图切换为纯前端行为，不改变 URL。
+- 商品参数：`product.specs` 存 JSON 对象（如 `{"品牌":"和平号工作室","容量":"500ml"}`，≤8 组，键 ≤20 字、值 ≤50 字），详情页按 key-value 渲染成参数表；JSON 解析失败时整块不展示且不报错（不影响页面其它区域）。
+- 详情正文：`product.detail` 按纯文本渲染（`th:text` 转义），为空时隐藏该区块。
 - SKU 切换：
   1. 页面一次性下发该 SPU 的 SKU 列表，切换规格时通过 `GET /product/{id}/skus` 局部刷新价格/库存/按钮状态，**不整页刷新、URL 不变**；
   2. 默认选中第一个 `stock>0` 的 SKU；全部售罄时选中第一个并禁用购买；
@@ -282,7 +288,7 @@ com.ipc.mall
 ### 5.11 结算下单
 
 1. 入口：购物车勾选 → 结算；或详情页「立即购买」。
-2. 确认页展示：商品明细（图、名、规格、单价、数量、小计）、收货地址（可切换/新增）、运费（本期固定 0，字段落库 `freight_amount`）、应付总额。
+2. 确认页展示：商品明细（图、名、规格、单价、数量、小计）、收货地址（可切换/新增）、订单备注（选填，≤200 字，落库 `orders.remark`）、运费（本期固定 0，字段落库 `freight_amount`）、应付总额。
 3. 提交规则（**按顺序校验，任一失败即中止**）：
 
 | # | 校验 | 失败码 |
@@ -291,10 +297,11 @@ com.ipc.mall
 | 2 | 地址存在且属于当前用户 | 3004 |
 | 3 | 每个 SKU 仍 `status=1` 且 `stock ≥ quantity` | 2001 / 2002 |
 | 4 | 单价以**数据库当前价**为准，忽略页面传值 | — |
-| 5 | 防重复提交（见下） | 3006 |
+| 5 | 备注长度 ≤ 200（可空，纯文本，前后空白 trim） | 400 |
+| 6 | 防重复提交（见下） | 3006 |
 
 4. 落库（单事务）：
-   - 生成 `orders`（状态 `PENDING_PAYMENT`，收货信息**快照**，`order_no` 规则见 §7.3）；
+   - 生成 `orders`（状态 `PENDING_PAYMENT`，收货信息**快照**，用户备注写入 `remark`，`order_no` 规则见 §7.3）；
    - 生成 `order_item`（名称/规格/单价/数量/图片**快照**）；
    - 扣减库存：`UPDATE item SET stock = stock - #{qty}, version = version + 1 WHERE id = ? AND stock >= #{qty} AND version = #{version}`，受影响行数为 0 即失败回滚；
    - 清空购物车中已下单的勾选项（逻辑删除）。
@@ -316,10 +323,11 @@ com.ipc.mall
 | 功能 | 规则 |
 |---|---|
 | 订单列表 | 按状态 Tab（全部/待支付/已支付/已发货/已完成/已取消）筛选；分页；展示订单号、下单时间、首件商品图+名称、件数、总额、状态、操作按钮 |
-| 订单详情 | 商品明细、收货信息、金额（商品总额 + 运费 = 应付）、状态时间线（下单/支付/发货/完成/取消，各自取对应时间戳）、物流公司 + 单号（已发货后显示） |
+| 订单详情 | 商品明细、收货信息、订单备注（`remark`，用户下单时填写、后台可改）、金额（商品总额 + 运费 = 应付）、状态时间线（下单/支付/发货/完成/取消，各自取对应时间戳）、物流公司 + 单号（已发货后显示） |
 | 去支付 | 仅 `PENDING_PAYMENT` |
 | 取消订单 | 仅 `PENDING_PAYMENT`；二次确认；回补库存 |
 | 确认收货 | 仅 `SHIPPED`；二次确认；置 `COMPLETED`、写 `finish_time` |
+| 删除订单 | 仅终态（`CANCELLED` / `COMPLETED`）；二次确认；逻辑删除（`deleted=1`），**不回补库存**；非终态返回 3002（与后台删除同一规则，见 §8.2 T7） |
 | 投诉 | 仅 `PAID`/`SHIPPED`/`COMPLETED` 显示入口，跳 `/feedback/form?orderId={id}`；其余状态不显示，接口侧同样校验（§5.15） |
 | 越权 | 所有操作校验 `account_id`，不匹配返回 3003 |
 
@@ -327,6 +335,7 @@ com.ipc.mall
 
 - 定时任务每分钟扫描 `status=PENDING_PAYMENT AND create_time < now() - 30min`。
 - 逐单处理：条件更新 `UPDATE orders SET status='CANCELLED' WHERE id=? AND status='PENDING_PAYMENT'`，受影响行数为 1 才回补库存（**幂等**，防与用户手动取消并发重复回补）。
+
 ### 5.15 投诉与反馈
 
 | 类型 | 入口 | 是否绑订单 |
@@ -356,6 +365,8 @@ com.ipc.mall
 - 详情（`/feedback/{id}`）：完整内容、订单摘要（投诉时，可跳订单详情）、状态时间线、卖家回复及时间。
 - 越权：非本人记录一律返回 404，不暴露记录是否存在。
 - **撤销**：仅 `PENDING` 可撤销 → `CLOSED`，`close_reason='用户撤销'`；卖家受理后不可撤销。
+- **补充说明**：详情页可追加说明（每次 ≤200 字，纯文本），按 `【yyyy-MM-dd HH:mm】` 前缀分行拼接到 `feedback.user_note`（总长 ≤1000）；仅未关闭记录可补充，`CLOSED` 后按钮隐藏且接口返回 3002；补充**不改变状态**。
+- **我已解决**：仅 `REPLIED` 可点 → `CLOSED`，`close_reason='用户确认已解决'`；与撤销一样走条件更新，重复点击返回 3002；关闭后可对同一订单重新投诉。
 
 ---
 
@@ -377,17 +388,17 @@ com.ipc.mall
 
 ### 6.3 商品管理（Product / Item）
 
-商品由「SPU + 若干 SKU」组成，后台两个页面：SPU 列表、SKU 编辑。
+商品由「SPU + 若干 SKU」组成，后台四个页面：SPU 列表 / SPU 表单、SKU 列表 / SKU 表单（见 §9.2）。
 
 **SPU（`product`）**
 
 | 功能 | 规则 |
 |---|---|
-| 列表 | 分页；按名称/所属分类/上下架状态筛选；展示主图、名称、分类、最低价、SKU 数、总库存、状态、更新时间 |
-| 新增/修改 | 所属分类（须为二级分类）、名称（≤60）、品牌（≤30）、短描述（≤200）、详情（富文本/纯文本均可）、主图、状态 |
+| 列表 | 分页；按名称/所属分类/上下架状态筛选；展示主图、名称、分类、最低价、销量（`sales`）、SKU 数、总库存、状态、更新时间 |
+| 新增/修改 | 所属分类（须为二级分类）、名称（≤60）、品牌（≤30）、短描述（≤200）、详情（富文本/纯文本均可）、主图、相册（≤5 张，逗号分隔存 `images`）、商品参数（key-value 行，≤8 组，存 `specs` JSON）、状态 |
 | 上下架 | 切换 `status`（1 上架 / 0 下架）。下架后前台列表不再出现、详情页显示已下架、不可加购 |
 | 删除 | 逻辑删除；**存在未完结订单（PENDING_PAYMENT/PAID/SHIPPED）引用其 SKU 时禁止删除**（返回 2005），防止订单详情丢失商品信息（订单已存快照，此为业务保守策略） |
-| 主图上传 | `POST /admin/upload/image`，jpg/png/webp，≤5MB，UUID 重命名，返回可访问 URL（`/uploads/**`） |
+| 图片上传 | `POST /admin/upload/image`，jpg/png/webp，≤5MB，UUID 重命名，返回可访问 URL（`/uploads/**`）；主图与相册共用该接口，单次一张，前端逐张上传后拼 `images` |
 
 **SKU（`item`）**
 
@@ -427,7 +438,7 @@ com.ipc.mall
 | 功能 | 规则 |
 |---|---|
 | 列表 | 分页；按类型/状态/时间区间/订单号/用户名筛选；排序：`PENDING` 优先，其次按提交时间倒序 |
-| 详情 | 内容、联系方式、关联订单摘要（可跳订单详情）、状态时间线 |
+| 详情 | 内容、用户补充说明（`user_note`，按时间倒序展示）、联系方式、关联订单摘要（可跳订单详情）、状态时间线 |
 | 受理 | `PENDING` → `PROCESSING`；重复受理返回 3002 |
 | 回复 | `PENDING`/`PROCESSING` 可回复，回复内容 1–500 字必填 → `REPLIED`，写 `reply`、`reply_admin_id`、`reply_time` |
 | 关闭 | 未关闭状态均可关闭，填原因（≤100）→ `CLOSED`；关闭后用户可对同一订单重新投诉 |
@@ -526,6 +537,9 @@ com.ipc.mall
 | descn | VARCHAR(200) | NULL | 短描述（列表/详情顶部） |
 | detail | TEXT | NULL | 详情（可空） |
 | main_image | VARCHAR(255) | NULL | 主图 URL |
+| images | VARCHAR(1000) | NULL | 相册，逗号分隔 URL，≤5 张，首张建议与主图一致 |
+| specs | TEXT | NULL | 商品参数 JSON 对象，≤8 组 key-value（§5.4） |
+| sales | INT | NOT NULL DEFAULT 0 | 累计已售件数，支付成功时累加（口径见 §7.6） |
 | status | TINYINT | DEFAULT 1 | 1 上架 / 0 下架 |
 | deleted / create_time / update_time | — | — | `update_time` 用于默认排序 |
 
@@ -581,7 +595,7 @@ com.ipc.mall
 | receiver_detail | VARCHAR(100) | NOT NULL | 快照 |
 | courier_company | VARCHAR(30) | NULL | 物流公司（发货写入） |
 | tracking_no | VARCHAR(40) | NULL | 物流单号 |
-| remark | VARCHAR(200) | NULL | 订单备注/后台备注 |
+| remark | VARCHAR(200) | NULL | 用户下单备注（≤200），后台可修改 |
 | pay_time / ship_time / finish_time / cancel_time | DATETIME | NULL | 状态时间线 |
 | deleted / create_time / update_time | — | — | — |
 
@@ -592,6 +606,7 @@ com.ipc.mall
 | id | BIGINT | PK | — |
 | order_id | BIGINT | NOT NULL, INDEX | — |
 | item_id | BIGINT | NOT NULL | 原 SKU id（仅追溯，不参与展示逻辑） |
+| product_id | BIGINT | NOT NULL, INDEX | 原 SPU id 快照（销量归集与统计用，见 §7.6） |
 | product_name | VARCHAR(60) | NOT NULL | 快照 |
 | spec | VARCHAR(50) | NOT NULL | 快照 |
 | price | DECIMAL(10,2) | NOT NULL | 下单时单价快照 |
@@ -609,6 +624,7 @@ com.ipc.mall
 | order_id | BIGINT | NULL, INDEX | 投诉必填，反馈为 `NULL` |
 | category | VARCHAR(20) | NULL | `QUALITY` / `LOGISTICS` / `SERVICE` / `OTHER` |
 | content | VARCHAR(500) | NOT NULL | 正文，纯文本 |
+| user_note | TEXT | NULL | 用户补充说明，`【时间】` 前缀分行拼接，总长 ≤1000（§5.15） |
 | images | VARCHAR(500) | NULL | 【P1】逗号分隔 URL，≤3 张 |
 | contact | VARCHAR(50) | NULL | 联系方式（选填） |
 | status | VARCHAR(20) | NOT NULL, INDEX | 见 §8.4 |
@@ -645,7 +661,7 @@ com.ipc.mall
 | item | (`product_id`) | 详情页取 SKU |
 | cart | (`account_id`,`item_id`) | 加购查重（非唯一，见 §7.5） |
 | orders | UNIQUE(`order_no`)、(`account_id`,`status`,`create_time`) | 幂等 + 我的订单筛选 |
-| order_item | (`order_id`) | 详情/列表聚合 |
+| order_item | (`order_id`)、(`product_id`) | 详情/列表聚合 + 销量归集与回填 |
 | feedback | (`account_id`,`create_time`)、(`order_id`)、(`type`,`status`) | 我的反馈 / 按订单查重 / 后台筛选 |
 | sys_oper_log | (`admin_id`,`create_time`)、(`module`) | 后台日志页 |
 
@@ -653,6 +669,19 @@ com.ipc.mall
 
 1. **唯一索引 + 逻辑删除**：若 `(username)` 单列唯一，用户注销后无法再注册同名账号。方案：唯一索引建在 `(username, deleted)`；但逻辑删除多次会重复 `deleted=1` 冲突 → 约定**同一用户名只允许存在 1 条 `deleted=1` 记录**，删除时若已有同名已删记录则物理删除旧记录（或把 `deleted` 设为该行 id 而非 1）。本项目取**最简方案**：`deleted` 只存 0/1，删除前先清理同名历史已删记录。
 2. **购物车复活**：`cart` 不建唯一索引，加购时按 `(account_id, item_id)` 查**含已删除**的记录：存在则 `deleted=0` 并累加数量，避免重复行导致合计错误。
+
+### 7.6 销量统计（`product.sales`）
+
+| 项 | 约定 |
+|---|---|
+| 字段 | `product.sales INT NOT NULL DEFAULT 0`，SPU 级「累计已售件数」，本期只增不减 |
+| 计数口径 | 以**支付成功**为准：`PENDING_PAYMENT → PAID`（T2）时按订单明细累加；下单未支付、取消、超时关单均不计入 |
+| 写入 | 在 T2 事务内按 `order_item.product_id` 分组累加：`UPDATE product SET sales = sales + #{qty} WHERE id = #{productId}`；与订单状态条件更新同事务，状态流转成功才累加，天然只加一次 |
+| 不回退 | 取消/关单只发生在 `PENDING_PAYMENT`（尚未计数），故无需回退；退款/退货属 P2，本期不做，届时按订单回退并在此登记规则 |
+| 读取 | 商品卡、详情页、后台 SPU 列表直接读 `product.sales`，**禁止**在列表查询里实时 `SUM(order_item)` 聚合（避免 N+1 与全表扫描） |
+| 快照 | `order_item.product_id` 为下单时的 SPU 快照，用于销量归集与统计；SPU 逻辑删除后历史订单仍可追溯 |
+| 初始化 | `db/data.sql` 直接写演示初值；如需按历史订单重算，用一次性脚本汇总「已支付」订单的 `order_item` 覆盖写入 |
+| 扩展 | 后续若加「销量排序」，直接 `ORDER BY product.sales DESC`，并给 `sales` 补索引 |
 
 ---
 
@@ -681,12 +710,12 @@ com.ipc.mall
 | # | 转移 | 触发 | 角色 | 前置校验 | 副作用 |
 |---|---|---|---|---|---|
 | T1 | — → `PENDING_PAYMENT` | 提交订单 | 用户 | 库存充足、地址归属本人、Token 未复用 | 扣库存、写明细快照 |
-| T2 | `PENDING_PAYMENT` → `PAID` | 模拟支付成功 | 用户 | 订单归属本人 | 写 `pay_time` |
+| T2 | `PENDING_PAYMENT` → `PAID` | 模拟支付成功 | 用户 | 订单归属本人 | 写 `pay_time`；按 §7.6 累加 `product.sales` |
 | T3 | `PENDING_PAYMENT` → `CANCELLED` | 取消支付 / 用户取消 | 用户 | 归属本人 | 回补库存、写 `cancel_time` |
 | T4 | `PENDING_PAYMENT` → `CANCELLED` | 超时关单【P1】 | 系统 | 超 30 分钟 | 条件更新成功才回补库存 |
 | T5 | `PAID` → `SHIPPED` | 卖家发货 | 卖家 | 已填物流公司+单号 | 写 `ship_time`、`courier_company`、`tracking_no` |
 | T6 | `SHIPPED` → `COMPLETED` | 确认收货 | 用户 | 归属本人 | 写 `finish_time` |
-| T7 | `CANCELLED`/`COMPLETED` → 逻辑删除 | 后台删除 | 卖家 | 状态为终态 | 写 `deleted=1`（不回补库存） |
+| T7 | `CANCELLED`/`COMPLETED` → 逻辑删除 | 用户删除订单 / 后台删除 | 用户 / 卖家 | 状态为终态 | 写 `deleted=1`（不回补库存） |
 
 ### 8.3 约束
 
@@ -695,6 +724,7 @@ com.ipc.mall
 3. 所有流转由 `OrderStatus` 枚举 + `canTransitTo(target)` 校验方法统一控制，**禁止直接 set 状态字符串**，禁止在 SQL 里随意 `UPDATE status`（除 T4 的条件更新）。
 4. 每次流转用**条件更新**保证幂等：`UPDATE orders SET status=#{to} WHERE id=#{id} AND status=#{from}`，受影响行数 0 则返回 3002。
 5. 取消/关单必须回补库存，且**只回补一次**（依赖条件更新成功与否判断）。
+6. 销量累加只随 T2 的条件更新成功执行一次（§7.6）；T3/T4/T5/T6 均不改销量；`CANCELLED`/`COMPLETED` 删除（T7，含前台删除）同样不改销量。
 
 ### 8.4 投诉与反馈状态机
 
@@ -707,8 +737,8 @@ com.ipc.mall
 
 ```
 待处理 ──卖家受理──▶ 处理中 ──卖家回复──▶ 已回复 ──卖家关闭──▶ 已关闭（终态）
-   │                    │                    │
-   └──用户撤销──────────┴────卖家关闭────────┴──▶ 已关闭（终态）
+   │                    │                    └──用户确认已解决──▶ 已关闭（终态）
+   └──用户撤销──────────┴────卖家关闭──────────────────────────▶ 已关闭（终态）
 ```
 
 | # | 转移 | 触发 | 角色 | 前置 | 副作用 |
@@ -718,8 +748,9 @@ com.ipc.mall
 | C3 | `PENDING`/`PROCESSING` → `REPLIED` | 回复 | 卖家 | 回复内容非空 | 写 `reply`、`reply_admin_id`、`reply_time` |
 | C4 | `PENDING` → `CLOSED` | 撤销 | 用户 | 仅 `PENDING` | 写 `close_reason='用户撤销'` |
 | C5 | 未关闭 → `CLOSED` | 关闭 | 卖家 | 填关闭原因 | 写 `close_reason` |
+| C6 | `REPLIED` → `CLOSED` | 用户确认已解决（「我已解决」） | 用户 | 仅 `REPLIED` | 写 `close_reason='用户确认已解决'` |
 
-约束：`CLOSED` 为终态不可回退；所有流转用条件更新（`WHERE id=? AND status=?`），影响行数为 0 返回 3002；`REPLIED` 不等于办结，仍需卖家关闭才进入终态（保证后台有明确的收口动作）。
+约束：`CLOSED` 为终态不可回退；所有流转用条件更新（`WHERE id=? AND status=?`），影响行数为 0 返回 3002；`REPLIED` 不等于办结，仍需卖家关闭或用户「我已解决」（C6）才进入终态（保证收口动作明确）；补充说明不改变状态，仅追加 `user_note`。
 
 ---
 
@@ -782,8 +813,8 @@ com.ipc.mall
 | # | 方法 | 路径 | 说明 | 鉴权 |
 |---|---|---|---|---|
 | F1 | GET | `/` | 首页（分类 + 推荐） | 否 |
-| F2 | GET | `/product/list` | 列表（`categoryId`、`keyword`、`page`、`size`、`sort`） | 否 |
-| F3 | GET | `/category/{id}` | 分类页（一级/二级分类落地，含子分类商品，分页） | 否 |
+| F2 | GET | `/product/list` | 列表（`categoryId`、`keyword`、`onlyInStock`、`page`、`size`、`sort`） | 否 |
+| F3 | GET | `/category/{id}` | 分类页（一级/二级分类落地，含子分类商品，`page`/`size`/`sort`/`onlyInStock`） | 否 |
 | F4 | GET | `/product/{id}` | 详情（含 SKU 列表） | 否 |
 | F5 | GET | `/product/{id}/skus` | 刷新规格价格库存（JSON） | 否 |
 | F6 | GET | `/search` | 搜索（复用列表） | 否 |
@@ -805,7 +836,7 @@ com.ipc.mall
 | F22 | DELETE | `/address/{id}` | 删除 | 是 |
 | F23 | POST | `/address/{id}/default` | 设为默认 | 是 |
 | F24 | GET | `/order/checkout` | 确认订单（`itemId`+`quantity` 或 `cartIds`） | 是 |
-| F25 | POST | `/order/submit` | 提交订单（`submitToken`）→ 302 支付页 | 是 |
+| F25 | POST | `/order/submit` | 提交订单（`submitToken`、`remark`）→ 302 支付页 | 是 |
 | F26 | GET | `/order/{id}/pay` | 支付页 | 是 |
 | F27 | POST | `/order/{id}/pay` | 模拟支付成功 | 是 |
 | F28 | POST | `/order/{id}/cancel` | 取消订单 | 是 |
@@ -817,6 +848,9 @@ com.ipc.mall
 | F34 | GET | `/feedback/list` | 我的投诉与反馈（`type`、`status`、`page`） | 是 |
 | F35 | GET | `/feedback/{id}` | 详情（含卖家回复） | 是 |
 | F36 | POST | `/feedback/{id}/cancel` | 撤销（仅 `PENDING`） | 是 |
+| F37 | DELETE | `/order/{id}` | 删除订单（仅终态，逻辑删除，不回补库存） | 是 |
+| F38 | POST | `/feedback/{id}/note` | 追加补充说明（`note`，≤200 字；`CLOSED` 后返回 3002） | 是 |
+| F39 | POST | `/feedback/{id}/resolve` | 用户确认已解决 → `CLOSED`（仅 `REPLIED`） | 是 |
 
 ### 10.3 后台接口
 
@@ -832,7 +866,7 @@ com.ipc.mall
 | A8 | DELETE | `/admin/category/{id}` | 删除（有下级则 2004） |
 | A9 | GET | `/admin/product` | SPU 列表（`keyword`、`categoryId`、`status`、`page`） |
 | A10 | GET | `/admin/product/form[/{id}]` | SPU 表单（含 SKU 子表） |
-| A11 | POST | `/admin/product/save` | 新增/修改 SPU + SKU 列表 |
+| A11 | POST | `/admin/product/save` | 新增/修改 SPU（含相册 `images`、参数 `specs`）+ SKU 列表 |
 | A12 | POST | `/admin/product/{id}/status` | 上下架（`status`） |
 | A13 | DELETE | `/admin/product/{id}` | 删除（有未完结订单则 2005） |
 | A14 | GET | `/admin/item` | SKU 列表（`productId`） |
@@ -999,6 +1033,15 @@ com.ipc.mall
 | AC-41 | G：一条 `PENDING` 投诉；W：后台受理 → 回复 → 前台查看详情；T：状态 `PROCESSING` → `REPLIED`，前台显示回复内容与回复时间，操作日志新增两条（受理/回复） |
 | AC-42 | G：一条 `REPLIED` 投诉；W：后台关闭并填原因；T：状态 `CLOSED`，前台不可再撤销，用户可对同一订单重新投诉；对已关闭记录再次关闭返回 3002 |
 
+### 12.4 补充验收（v1.1 对齐原型）
+
+| 编号 | 验收标准 |
+|---|---|
+| AC-43 | G：`CANCELLED` 与 `COMPLETED` 各一笔订单；W：用户点「删除订单」；T：二次确认后逻辑删除、列表不再出现、库存不二次回补；对 `PAID` 订单调用返回 3002 |
+| AC-44 | G：SPU 配置 5 张相册图与 6 组参数；W：打开详情页并点击缩略图；T：主图随点击切换且 URL 不变，参数表按 key-value 展示；`specs` 为非法 JSON 时参数区隐藏、页面其余部分正常 |
+| AC-45 | G：新用户下单支付 2 件同 SPU；W：查看商品卡、详情、后台 SPU 列表；T：三处「已售」均 +2；另一笔待支付订单取消后已售不变 |
+| AC-46 | G：`REPLIED` 投诉；W：用户先「补充说明」再「我已解决」；T：`user_note` 追加带时间前缀的一条说明、状态仍为 `REPLIED`；点「我已解决」后置 `CLOSED`、`close_reason='用户确认已解决'`，重复点击返回 3002 |
+
 ---
 
 ## 13. 里程碑
@@ -1047,10 +1090,10 @@ com.ipc.mall
 
 | # | 待定内容 | 建议 |
 |---|---|---|
-| Q1 | 商品排序是否加价格排序 | 时间够就做（P1），SQL 用最低价子查询 |
+| Q1 | 商品排序是否加价格排序 | 已定（v1.1）：本期做，升为 P0；`sort` = 综合 / 价格升 / 价格降 / 最新，另加「仅看有货」，SQL 用最低价子查询 |
 | Q2 | 超时关单是否本期做 | 建议做：逻辑简单，答辩加分（P1） |
 | Q3 | 后台是否显示工作台统计 | 建议只做 4 个数字卡片，不做图表 |
-| Q4 | 订单备注是否开放给用户 | 建议只做后台备注，用户端不做（减少字段暴露） |
+| Q4 | 订单备注是否开放给用户 | 已定（v1.1）：开放给用户（≤200 字，落 `orders.remark`），后台可修改同一字段 |
 | Q5 | 是否允许后台修改订单金额 | 不允许（快照锁定），与本文一致 |
 | Q6 | 验证码是否区分大小写 | 不区分，降低演示失败率 |
 | Q7 | 投诉是否限制时间窗（如订单完成后 30 天内） | 本期不限；若加，只需在提交校验里加一个时间条件 |
@@ -1077,6 +1120,10 @@ com.ipc.mall
 | D-12 | 分类字段取 `parent_id` + `visible` + `descn` + `sort` | 只保留 `parent_id` | 导航可见性、排序、描述是三个独立诉求，混在一起以后要加字段做兼容 |
 | D-13 | 投诉只能绑定本人已购买的订单（`PAID`/`SHIPPED`/`COMPLETED`） | 允许对任意订单投诉，或不绑订单直接投诉 | 投诉是交易纠纷，先有交易才谈得上纠纷；未支付、已取消的订单没有履约事实，投诉无从核实，也挡住恶意刷投诉 |
 | D-14 | 投诉与反馈共用 `feedback` 一张表 | 拆成两张表 | 两者字段八成重合（内容、状态、回复、关闭原因），分表会让后台列表、回复、日志各写两套；用 `type` 区分即可 |
+| D-15 | 销量用 `product.sales` 冗余字段，支付成功时累加 | 列表页实时 `SUM(order_item)` | 商品卡、详情、后台三处都要展示；实时聚合会在每次列表查询上做子查询。状态机已保证支付只发生一次，累加天然幂等（§7.6） |
+| D-16 | SPU 相册与参数表存 `product.images` / `product.specs` | 建 `product_image` 表 / 每个参数建固定字段 | 课程规模下 ≤5 张相册、≤8 组参数，逗号分隔 + JSON 足够；独立表要多一套 CRUD，固定字段又表达不了「不同品类参数不同」（§5.4） |
+| D-17 | 前台允许用户删除终态订单 | 只有后台可删 | 已取消/已完成订单留在前台列表只增加噪音；复用 T7 的终态限制与逻辑删除，不新增状态、不涉及库存（§5.13） |
+| D-18 | 售后增加「补充说明」与「我已解决」 | 只留撤销 / 只留卖家关闭 | 原型已出这两个动作：补充说明解决「用户想追加信息但不想重开投诉」，我已解决让 `REPLIED` 有用户侧收口；用 `user_note` 追加文本 + C6 条件更新即可，不破坏状态机（§5.15、§8.4） |
 
 ## 附录 B · 答辩演示脚本（5 分钟）
 
@@ -1092,4 +1139,5 @@ com.ipc.mall
 
 | 版本 | 日期 | 变更 | 作者 |
 |---|---|---|---|
+| v1.1 | 2026-11-19 | 按 HTML 原型对齐需求：① 新增 `product.sales` 销量字段与 §7.6 统计口径、`order_item.product_id` 快照；② SPU 相册 `images` 与商品参数 `specs` 纳入 P0（D-16）；③ 前台可删除终态订单（§5.13、F37、D-17）；④ 用户端订单备注开放（§5.11、Q4）；⑤「仅看有货」与四种排序由 P1 升 P0（§5.3、Q1）；⑥ 售后新增「补充说明」「我已解决」（`feedback.user_note`、C6、F38/F39、D-18）；新增 AC-43～AC-46 | — |
 | v1.0 | 2026-11-17 | 初稿：范围与角色、商品/用户/交易/后台四域功能、数据模型、订单状态机、接口与错误码、验收标准、里程碑 | — |

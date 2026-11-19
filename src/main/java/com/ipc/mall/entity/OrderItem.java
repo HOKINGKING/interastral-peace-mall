@@ -31,6 +31,9 @@ public class OrderItem implements Serializable {
     /** 原 SKU id，仅用于追溯，展示时不要回查商品（商品可能已改价/下架） */
     private Long itemId;
 
+    /** 原 SPU id 快照：销量归集与统计用（PRD §7.6），不参与展示 */
+    private Long productId;
+
     /** 下单时的商品名快照 */
     private String productName;
 

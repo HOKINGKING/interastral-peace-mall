@@ -49,27 +49,27 @@ INSERT INTO category (id, parent_id, name, sort, visible) VALUES
     (602, 6, '办公套装', 20, 1);
 
 -- ===== 4. 商品 SPU（10 个，与原型 PRODUCTS 一致）=====
-INSERT INTO product (id, category_id, name, brand, descn, detail, main_image, status) VALUES
+INSERT INTO product (id, category_id, name, brand, descn, detail, main_image, sales, status) VALUES
     (1,  101, '星际和平水杯 · 500ml', '和平号工作室', '船用级不锈钢内胆，杯盖带星轨浮雕。',
-     '官方周边直营：500ml 容量，双层真空保温 6 小时，杯身烫印星际和平公司徽记。', NULL, 1),
+     '官方周边直营：500ml 容量，双层真空保温 6 小时，杯身烫印星际和平公司徽记。', NULL, 326, 1),
     (2,  301, '星轨帆布包 · 加厚版', '轨道制衣', '16 安加厚帆布，可装 14 寸笔电。',
-     '加厚帆布 + 内衬分层，肩带加宽不勒肩，正面丝印星轨图案。', NULL, 1),
+     '加厚帆布 + 内衬分层，肩带加宽不勒肩，正面丝印星轨图案。', NULL, 181, 1),
     (3,  401, '舰桥模型 · 纪念版', '深空模型社', '1:1000 舰桥模型，附亚克力底座。',
-     '合金压铸一体成型，底座激光刻印编号，适合桌面陈列。', NULL, 1),
+     '合金压铸一体成型，底座激光刻印编号，适合桌面陈列。', NULL, 42, 1),
     (4,  201, '驾驶员徽章套装（6 枚）', '和平号工作室', '金属烤漆，六位驾驶员徽记。',
-     '锌合金材质，烤漆工艺，背面蝴蝶扣，随附收藏盒。', NULL, 1),
+     '锌合金材质，烤漆工艺，背面蝴蝶扣，随附收藏盒。', NULL, 517, 1),
     (5,  103, '深空香薰蜡烛 · 冷杉', '慢燃实验室', '冷杉与雪松调，燃烧时长约 30 小时。',
-     '大豆蜡基底，无烟燃烧，玻璃杯可二次利用。', NULL, 1),
+     '大豆蜡基底，无烟燃烧，玻璃杯可二次利用。', NULL, 97, 1),
     (6,  202, '命运星图海报 · A2', '星图印社', 'A2 尺寸，星轨夜光油墨。',
-     '200g 哑粉纸，夜光油墨印刷，暗环境下可见星轨。', NULL, 1),
+     '200g 哑粉纸，夜光油墨印刷，暗环境下可见星轨。', NULL, 203, 1),
     (7,  502, '联名机械键盘 · 86 键', '轨道外设', '86 键紧凑布局，热插拔轴座。',
-     '全键无冲，PBT 键帽，附赠星轨主题替换键帽一套。', NULL, 1),
+     '全键无冲，PBT 键帽，附赠星轨主题替换键帽一套。', NULL, 35, 1),
     (8,  203, '星际和平笔记本 · 方格', '和平号工作室', 'A5 方格本，可 180 度平摊。',
-     '100g 道林纸，硬壳封面，内页 80 页方格。', NULL, 1),
+     '100g 道林纸，硬壳封面，内页 80 页方格。', NULL, 640, 1),
     (9,  102, '轨道托盘 · 合金', '慢燃实验室', '合金压铸，可作首饰/钥匙托。',
-     '磨砂阳极氧化处理，底部防滑硅胶垫。', NULL, 1),
+     '磨砂阳极氧化处理，底部防滑硅胶垫。', NULL, 76, 1),
     (10, 102, '星球夜灯 · 暖光', '慢燃实验室', '触控三档调光，充电款。',
-     '星球纹理手工上色，USB-C 充电，满电可用约 12 小时。', NULL, 1);
+     '星球纹理手工上色，USB-C 充电，满电可用约 12 小时。', NULL, 58, 1);
 
 -- ===== 5. 商品 SKU（价格与库存都在这一层）=====
 INSERT INTO item (id, product_id, spec, price, stock, image, version) VALUES
@@ -109,13 +109,13 @@ VALUES
      NULL, NULL, NOW() - INTERVAL 8 MINUTE, NULL, NULL, NULL, NOW() - INTERVAL 15 MINUTE);
 
 -- ===== 8. 订单明细（全快照）=====
-INSERT INTO order_item (order_id, item_id, product_name, spec, price, quantity, image, create_time) VALUES
-    (1, 1, '星际和平水杯 · 500ml', '500ml 星白',      59.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
-    (1, 3, '星轨帆布包 · 加厚版', '加厚版 · 深空蓝',   89.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
-    (2, 7, '深空香薰蜡烛 · 冷杉', '冷杉 120g',        129.00, 1, NULL, NOW() - INTERVAL 31 HOUR),
-    (3, 11, '轨道托盘 · 合金',    '合金 · 小号',        69.00, 1, NULL, NOW() - INTERVAL 52 HOUR),
-    (4, 5, '舰桥模型 · 纪念版',   '纪念版 · 标准',     299.00, 1, NULL, NOW() - INTERVAL 27 HOUR),
-    (5, 6, '驾驶员徽章套装（6 枚）', '6 枚装',           39.00, 2, NULL, NOW() - INTERVAL 15 MINUTE);
+INSERT INTO order_item (order_id, item_id, product_id, product_name, spec, price, quantity, image, create_time) VALUES
+    (1, 1, 1, '星际和平水杯 · 500ml', '500ml 星白',      59.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
+    (1, 3, 2, '星轨帆布包 · 加厚版', '加厚版 · 深空蓝',   89.00, 1, NULL, NOW() - INTERVAL 20 MINUTE),
+    (2, 7, 5, '深空香薰蜡烛 · 冷杉', '冷杉 120g',        129.00, 1, NULL, NOW() - INTERVAL 31 HOUR),
+    (3, 11, 9, '轨道托盘 · 合金',    '合金 · 小号',        69.00, 1, NULL, NOW() - INTERVAL 52 HOUR),
+    (4, 5, 3, '舰桥模型 · 纪念版',   '纪念版 · 标准',     299.00, 1, NULL, NOW() - INTERVAL 27 HOUR),
+    (5, 6, 4, '驾驶员徽章套装（6 枚）', '6 枚装',           39.00, 2, NULL, NOW() - INTERVAL 15 MINUTE);
 
 -- ===== 9. 购物车（xingye 当前选购）=====
 INSERT INTO cart (account_id, item_id, quantity) VALUES
@@ -124,16 +124,18 @@ INSERT INTO cart (account_id, item_id, quantity) VALUES
 
 -- ===== 10. 投诉与反馈（与原型 FEEDBACKS 一致）=====
 INSERT INTO feedback
-    (type, account_id, order_id, category, content, contact, status,
+    (type, account_id, order_id, category, content, user_note, contact, status,
      reply, reply_admin_id, reply_time, close_reason, create_time)
 VALUES
     ('COMPLAINT', 1, 2, 'QUALITY',
      '蜡烛收到时玻璃杯有一道细裂纹，外包装完好，应该是出厂检验没发现。希望换一个或者退部分款。',
+     '【2026-11-16 15:40】已按卖家要求补拍裂纹特写与包装照片，辛苦查收。',
      NULL, 'REPLIED',
      '已核实为运输前瑕疵，为您补发一件并赠送香薰试用装，预计 48 小时内发出。',
      1, NOW() - INTERVAL 26 HOUR, NULL, NOW() - INTERVAL 28 HOUR),
     ('FEEDBACK', 1, NULL, 'OTHER',
      '希望商品详情页能标出模型的实际尺寸，现在只能靠图片估计，容易买大。',
+     NULL,
      '13800000001', 'PENDING',
      NULL, NULL, NULL, NULL, NOW() - INTERVAL 4 HOUR);
 

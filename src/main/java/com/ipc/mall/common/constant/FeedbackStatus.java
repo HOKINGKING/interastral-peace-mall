@@ -5,11 +5,11 @@ import lombok.Getter;
 /**
  * 投诉/反馈状态枚举（PRD §8.4）。
  * <pre>
- * PENDING ──受理──▶ PROCESSING ──回复──▶ REPLIED ──关闭──▶ CLOSED
- *    │                  │                  │
- *    └──用户撤销─────────┴────卖家关闭──────┴──▶ CLOSED（终态）
+ * PENDING ──受理──▶ PROCESSING ──回复──▶ REPLIED ──卖家关闭──▶ CLOSED
+ *    │                  │                  └──用户确认已解决──▶ CLOSED（终态）
+ *    └──用户撤销─────────┴────卖家关闭─────────────────────▶ CLOSED（终态）
  * </pre>
- * 注意：REPLIED 不等于办结，仍需卖家关闭才进入终态。
+ * 注意：REPLIED 不等于办结，仍需卖家关闭或用户「我已解决」（C6）才进入终态。
  */
 @Getter
 public enum FeedbackStatus {

@@ -75,6 +75,20 @@
     });
   }
 
+  // 相册：点击缩略图切换主图（纯前端，URL 不变）
+  var gallery = $('[data-gallery]');
+  if (gallery) {
+    var mainImg = $('.detail-main-img', gallery);
+    $$('[data-thumb]', gallery).forEach(function (t) {
+      t.style.cursor = 'pointer';
+      t.addEventListener('click', function () {
+        if (!mainImg) return;
+        mainImg.textContent = t.textContent;
+        mainImg.className = 'detail-main-img ' + t.className.replace('data-thumb', '').trim();
+      });
+    });
+  }
+
   // 购物车合计
   var cart = $('[data-cart]');
   if (cart) {

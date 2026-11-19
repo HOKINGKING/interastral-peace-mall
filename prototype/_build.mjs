@@ -102,10 +102,8 @@ const productCard = (p) => `
 const nav = (active) => {
   const items = [
     ['index.html', '首页', 'home'],
-    ['category.html', '分类', 'category'],
+    ...CATS.map((c) => ['category.html', `${c.icon} ${c.name}`, `cat${c.id}`]),
     ['product-list.html', '全部商品', 'list'],
-    ['order-list.html', '我的订单', 'orders'],
-    ['feedback-list.html', '投诉与反馈', 'feedback'],
   ];
   return `<nav class="nav">${items.map(([href, label, key]) => `<a href="${href}" class="${active === key ? 'active' : ''}">${label}</a>`).join('')}</nav>`;
 };
@@ -172,6 +170,7 @@ ${proto}
       <form class="search" data-ok="原型演示：搜索会跳到商品列表页"><input placeholder="搜索商品，如「水杯」「徽章」"><button type="submit">搜索</button></form>
       <div class="header-actions">
         <a href="user-center.html">你好，星野</a>
+        <a href="order-list.html">我的订单</a>
         <a class="cart-link" href="cart.html">购物车<span class="count">2</span></a>
         <a href="login.html" data-demo="原型演示：已退出登录（不会真的登出）">退出</a>
       </div>
@@ -295,10 +294,10 @@ const pageDetail = () => `
   <div class="panel pad">
     <div class="row" style="align-items:flex-start;gap:32px">
       <div style="flex:1;min-width:320px">
-        <div class="detail-gallery">
+        <div class="detail-gallery" data-gallery>
           <div class="detail-main-img ph">🥤</div>
           <div class="detail-thumbs">
-            <div class="ph">🥤</div><div class="ph alt-1">🥤</div><div class="ph alt-2">🥤</div><div class="ph alt-3">🥤</div><div class="ph alt-4">🥤</div>
+            <div class="ph" data-thumb>🥤</div><div class="ph alt-1" data-thumb>🥤</div><div class="ph alt-2" data-thumb>🥤</div><div class="ph alt-3" data-thumb>🥤</div><div class="ph alt-4" data-thumb>🥤</div>
           </div>
         </div>
       </div>
@@ -392,13 +391,33 @@ const pageRegister = () => authShell('注册', '创建账号，开始你的第�
     <button class="btn btn-primary btn-block" style="height:42px" type="submit">注册</button>
   </form>`, `已有账号？<a href="login.html" style="color:var(--brand)">去登录</a>`);
 
+const pageChangePassword = () => `
+<section class="page"><div class="container">
+  <div class="breadcrumb"><a href="index.html">首页</a><span class="sep">›</span><a href="user-center.html">个人中心</a><span class="sep">›</span><span>修改密码</span></div>
+  <div class="row" style="align-items:flex-start;gap:20px">
+    ${userSide('pwd')}
+    <div class="content-main">
+      <div class="panel pad" style="max-width:560px">
+        <h2 style="font-size:17px;margin-bottom:6px">修改密码</h2>
+        <p class="small muted mb-24">6–20 位，须同时包含字母和数字。修改成功后当前会话会被清除，需要用新密码重新登录。</p>
+        <form data-ok="原型演示：密码已修改，会话已清除，需用新密码重新登录">
+          <div class="field"><label>原密码<span class="req">*</span></label><input class="input" type="password" placeholder="请输入当前密码"></div>
+          <div class="field"><label>新密码<span class="req">*</span></label><input class="input" type="password" placeholder="6–20 位，需包含字母和数字"><div class="help">不能与原密码相同</div></div>
+          <div class="field"><label>确认新密码<span class="req">*</span></label><input class="input" type="password" placeholder="再次输入新密码"></div>
+          <div class="row"><button class="btn btn-primary" type="submit">保存并重新登录</button><a class="btn" href="user-center.html">取消</a></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div></section>`;
+
 const userSide = (active) => {
   const items = [
     ['user-center.html', '个人中心', 'center'],
     ['order-list.html', '我的订单', 'orders'],
     ['address-list.html', '收货地址', 'addr'],
     ['feedback-list.html', '我的投诉与反馈', 'fb'],
-    ['login.html', '修改密码', 'pwd'],
+    ['change-password.html', '修改密码', 'pwd'],
   ];
   return `<aside class="sidebar panel" style="flex:0 0 200px;width:200px">
     <div class="title">我的账户</div>
@@ -420,7 +439,7 @@ const pageCenter = () => `
             <div class="small muted">手机号 138****6688 · 注册于 2026-09-02 · 上次登录 2026-11-18 09:12</div>
           </div>
           <span style="flex:1"></span>
-          <a class="btn btn-sm" href="login.html" data-demo="原型演示：进入修改密码">修改密码</a>
+          <a class="btn btn-sm" href="change-password.html">修改密码</a>
         </div>
       </div>
       <div class="stats mt-16" style="grid-template-columns:repeat(4,1fr)">
@@ -570,8 +589,8 @@ const orderActions = (o) => {
     PENDING_PAYMENT: `<a class="btn btn-sm btn-primary" href="pay.html">去支付</a><button class="btn btn-sm" data-demo="原型演示：订单已取消，库存回补">取消订单</button>`,
     PAID: `<a class="btn btn-sm btn-primary" href="feedback-form.html">投诉</a><a class="btn btn-sm" href="order-detail.html">查看详情</a>`,
     SHIPPED: `<a class="btn btn-sm btn-primary" href="feedback-form.html">投诉</a><button class="btn btn-sm" data-confirm="原型演示：确认收货后订单变为「已完成」">确认收货</button>`,
-    COMPLETED: `<a class="btn btn-sm" href="feedback-form.html">投诉</a><a class="btn btn-sm" href="product-detail.html">再次购买</a>`,
-    CANCELLED: `<button class="btn btn-sm" data-confirm="原型演示：已删除该订单（仅终态可删）">删除订单</button>`,
+    COMPLETED: `<a class="btn btn-sm" href="feedback-form.html">投诉</a><a class="btn btn-sm" href="product-detail.html">再次购买</a><button class="btn btn-sm" data-confirm="原型演示：已删除该订单（仅终态可删，不回补库存）">删除订单</button>`,
+    CANCELLED: `<button class="btn btn-sm" data-confirm="原型演示：已删除该订单（仅终态可删，不回补库存）">删除订单</button>`,
   }[o.status];
   return t;
 };
@@ -622,6 +641,7 @@ const pageOrderDetail = () => `
       <div class="row" style="gap:8px">
         <a class="btn btn-sm" href="feedback-form.html">投诉此订单</a>
         <a class="btn btn-sm" href="product-detail.html">再次购买</a>
+        <button class="btn btn-sm" data-confirm="原型演示：已删除该订单（仅终态可删，不回补库存）">删除订单</button>
       </div>
     </div>
   </div>
@@ -893,22 +913,22 @@ ${adminHead('工作台', '今天先把「待发货」和「待处理投诉」清
 </div>`;
 
 const adminCategory = () => `
-${adminHead('分类管理', '两级分类：一级用于导航，二级用于商品归属', '<a class="btn btn-primary btn-sm" href="#" data-demo="原型演示：展开新增分类表单">+ 新增分类</a>')}
+${adminHead('分类管理', '两级分类：一级用于导航，二级用于商品归属', '<a class="btn btn-primary btn-sm" href="category-form.html">+ 新增分类</a>')}
 <div class="panel">
   <table class="table">
     <thead><tr><th>名称</th><th>层级</th><th>描述</th><th>排序</th><th>前台可见</th><th>更新时间</th><th class="right">操作</th></tr></thead>
     <tbody>
-      <tr><td><b>家居日用</b></td><td><span class="badge">一级</span></td><td class="muted">杯壶、摆件、香薰</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
-      <tr><td class="muted" style="padding-left:32px">— 杯壶</td><td><span class="badge">二级</span></td><td class="muted">水杯、保温杯</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：分类下有商品，删除被拒绝（2004）">删除</button></div></td></tr>
-      <tr><td class="muted" style="padding-left:32px">— 摆件</td><td><span class="badge">二级</span></td><td class="muted">桌面摆件、模型</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
-      <tr><td><b>文创周边</b></td><td><span class="badge">一级</span></td><td class="muted">徽章、海报、笔记本</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-10 15:20</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
-      <tr><td><b>礼盒套装</b></td><td><span class="badge">一级</span></td><td class="muted">暂未上架商品</td><td>6</td><td><label class="switch"><input type="checkbox"><span></span></label></td><td>2026-11-08 09:30</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑分类">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td><b>家居日用</b></td><td><span class="badge">一级</span></td><td class="muted">杯壶、摆件、香薰</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><a class="btn btn-sm" href="category-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td class="muted" style="padding-left:32px">— 杯壶</td><td><span class="badge">二级</span></td><td class="muted">水杯、保温杯</td><td>1</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><a class="btn btn-sm" href="category-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：分类下有商品，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td class="muted" style="padding-left:32px">— 摆件</td><td><span class="badge">二级</span></td><td class="muted">桌面摆件、模型</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-12 10:00</td><td class="right"><div class="actions"><a class="btn btn-sm" href="category-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td><b>文创周边</b></td><td><span class="badge">一级</span></td><td class="muted">徽章、海报、笔记本</td><td>2</td><td><label class="switch"><input type="checkbox" checked><span></span></label></td><td>2026-11-10 15:20</td><td class="right"><div class="actions"><a class="btn btn-sm" href="category-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：存在子分类，删除被拒绝（2004）">删除</button></div></td></tr>
+      <tr><td><b>礼盒套装</b></td><td><span class="badge">一级</span></td><td class="muted">暂未上架商品</td><td>6</td><td><label class="switch"><input type="checkbox"><span></span></label></td><td>2026-11-08 09:30</td><td class="right"><div class="actions"><a class="btn btn-sm" href="category-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
     </tbody>
   </table>
 </div>`;
 
 const adminProduct = () => `
-${adminHead('商品管理', 'SPU 维度管理，上下架影响前台可见性', '<a class="btn btn-primary btn-sm" href="#" data-demo="原型演示：打开新增商品表单（含 SKU 子表）">+ 新增商品</a>')}
+${adminHead('商品管理', 'SPU 维度管理，上下架影响前台可见性', '<a class="btn btn-primary btn-sm" href="product-form.html">+ 新增商品</a>')}
 <div class="panel pad-sm mb-16">
   <form class="row wrap" data-ok="原型演示：已按条件筛选">
     <input class="input" style="width:200px" placeholder="商品名称">
@@ -919,24 +939,25 @@ ${adminHead('商品管理', 'SPU 维度管理，上下架影响前台可见性',
 </div>
 <div class="panel">
   <table class="table">
-    <thead><tr><th>商品</th><th>分类</th><th>最低价</th><th>SKU</th><th>总库存</th><th>上架</th><th>更新时间</th><th class="right">操作</th></tr></thead>
+    <thead><tr><th>商品</th><th>分类</th><th>最低价</th><th>销量</th><th>SKU</th><th>总库存</th><th>上架</th><th>更新时间</th><th class="right">操作</th></tr></thead>
     <tbody>
       ${PRODUCTS.slice(0, 6).map((p, i) => `<tr>
         <td><div class="row"><span class="ph ${p.alt}" style="width:38px;height:38px;font-size:16px">${p.emoji}</span><div>${p.name}<div class="small muted mono">SPU-${1001 + i}</div></div></div></td>
         <td class="muted">${p.cat} / ${p.sub}</td>
         <td>${money(p.price)}</td>
+        <td>${p.sold}</td>
         <td>${2 + (i % 3)}</td>
         <td>${p.stock}</td>
         <td><label class="switch"><input type="checkbox" ${i === 5 ? '' : 'checked'}><span></span></label></td>
         <td class="muted">2026-11-1${(i % 8) + 1} 10:00</td>
-        <td class="right"><div class="actions"><a class="btn btn-sm" href="item.html">SKU</a><button class="btn btn-sm" data-demo="原型演示：编辑商品">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：该商品存在未完结订单，删除被拒绝（2005）">删除</button></div></td>
+        <td class="right"><div class="actions"><a class="btn btn-sm" href="item.html">SKU</a><a class="btn btn-sm" href="product-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：该商品存在未完结订单，删除被拒绝（2005）">删除</button></div></td>
       </tr>`).join('')}
     </tbody>
   </table>
 </div>`;
 
 const adminItem = () => `
-${adminHead('SKU 管理', 'SPU-1001 · 星际和平水杯 · 500ml', '<button class="btn btn-primary btn-sm" data-demo="原型演示：打开新增 SKU 表单">+ 新增 SKU</button>')}
+${adminHead('SKU 管理', 'SPU-1001 · 星际和平水杯 · 500ml', '<a class="btn btn-primary btn-sm" href="item-form.html">+ 新增 SKU</a>')}
 <div class="panel pad mb-16">
   <div class="row"><span class="ph" style="width:56px;height:56px;font-size:24px">🥤</span>
     <div><div style="font-weight:700">星际和平水杯 · 500ml</div><div class="small muted">家居日用 / 杯壶 · 上架中 · 3 个 SKU · 总库存 174</div></div>
@@ -945,15 +966,15 @@ ${adminHead('SKU 管理', 'SPU-1001 · 星际和平水杯 · 500ml', '<button cl
 </div>
 <div class="panel">
   <table class="table">
-    <thead><tr><th>规格</th><th>价格</th><th>库存</th><th>版本</th><th>状态</th><th>更新时间</th><th class="right">操作</th></tr></thead>
+    <thead><tr><th>规格</th><th>价格</th><th>库存</th><th>版本</th><th>库存状态</th><th>更新时间</th><th class="right">操作</th></tr></thead>
     <tbody>
-      <tr><td>500ml 星白</td><td>¥59.00</td><td>128</td><td class="mono">7</td><td><span class="badge badge-completed">在售</span></td><td class="muted">2026-11-17 09:12</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：该 SKU 存在未完结订单，删除被拒绝">删除</button></div></td></tr>
-      <tr><td>500ml 深空黑</td><td>¥59.00</td><td>46</td><td class="mono">3</td><td><span class="badge badge-completed">在售</span></td><td class="muted">2026-11-15 16:40</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
-      <tr><td>750ml 星白</td><td>¥69.00</td><td>0</td><td class="mono">9</td><td><span class="badge badge-cancelled">售罄</span></td><td class="muted">2026-11-10 11:05</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑 SKU">编辑</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td>500ml 星白</td><td>¥59.00</td><td>128</td><td class="mono">7</td><td><span class="badge badge-completed">有货</span></td><td class="muted">2026-11-17 09:12</td><td class="right"><div class="actions"><a class="btn btn-sm" href="item-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：该 SKU 存在未完结订单，删除被拒绝">删除</button></div></td></tr>
+      <tr><td>500ml 深空黑</td><td>¥59.00</td><td>46</td><td class="mono">3</td><td><span class="badge badge-completed">有货</span></td><td class="muted">2026-11-15 16:40</td><td class="right"><div class="actions"><a class="btn btn-sm" href="item-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
+      <tr><td>750ml 星白</td><td>¥69.00</td><td>0</td><td class="mono">9</td><td><span class="badge badge-cancelled">售罄</span></td><td class="muted">2026-11-10 11:05</td><td class="right"><div class="actions"><a class="btn btn-sm" href="item-form.html">编辑</a><button class="btn btn-sm btn-danger" data-confirm="原型演示：已逻辑删除">删除</button></div></td></tr>
     </tbody>
   </table>
 </div>
-<p class="small muted mt-8">库存扣减走乐观锁（version + stock >= qty 条件更新），后台改库存会校验 version 是否一致。</p>`;
+<p class="small muted mt-8">SKU 本身没有上下架状态（PRD D-2）：「库存状态」由 <span class="mono">stock</span> 派生（0 = 售罄）；库存扣减走乐观锁（version + stock &gt;= qty 条件更新），后台改库存会校验 version 是否一致。</p>`;
 
 const adminAccount = () => `
 ${adminHead('用户管理', '前台注册用户，可禁用或重置密码')}
@@ -968,9 +989,9 @@ ${adminHead('用户管理', '前台注册用户，可禁用或重置密码')}
   <table class="table">
     <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>手机号</th><th>状态</th><th>订单数</th><th>注册时间</th><th class="right">操作</th></tr></thead>
     <tbody>
-      <tr><td class="mono">1274</td><td>星野</td><td>星野</td><td>138****6688</td><td><span class="badge badge-completed">启用</span></td><td>5</td><td>2026-09-02</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置为随机密码，需通知用户">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用，该用户无法登录前台（1004）">禁用</button></div></td></tr>
-      <tr><td class="mono">1273</td><td>orbit_x</td><td>轨道</td><td>139****2233</td><td><span class="badge badge-completed">启用</span></td><td>2</td><td>2026-10-11</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用">禁用</button></div></td></tr>
-      <tr><td class="mono">1272</td><td>blacksun</td><td>黑日</td><td>137****9911</td><td><span class="badge badge-cancelled">禁用</span></td><td>0</td><td>2026-10-02</td><td class="right"><div class="actions"><button class="btn btn-sm" data-demo="原型演示：编辑用户信息">编辑</button><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm" data-confirm="原型演示：已启用">启用</button></div></td></tr>
+      <tr><td class="mono">1274</td><td>星野</td><td>星野</td><td>138****6688</td><td><span class="badge badge-completed">启用</span></td><td>5</td><td>2026-09-02</td><td class="right"><div class="actions"><a class="btn btn-sm" href="account-form.html">编辑</a><button class="btn btn-sm" data-confirm="原型演示：已重置为随机密码，需通知用户">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用，该用户无法登录前台（1004）">禁用</button></div></td></tr>
+      <tr><td class="mono">1273</td><td>orbit_x</td><td>轨道</td><td>139****2233</td><td><span class="badge badge-completed">启用</span></td><td>2</td><td>2026-10-11</td><td class="right"><div class="actions"><a class="btn btn-sm" href="account-form.html">编辑</a><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm btn-danger" data-confirm="原型演示：已禁用">禁用</button></div></td></tr>
+      <tr><td class="mono">1272</td><td>blacksun</td><td>黑日</td><td>137****9911</td><td><span class="badge badge-cancelled">禁用</span></td><td>0</td><td>2026-10-02</td><td class="right"><div class="actions"><a class="btn btn-sm" href="account-form.html">编辑</a><button class="btn btn-sm" data-confirm="原型演示：已重置密码">重置密码</button><button class="btn btn-sm" data-confirm="原型演示：已启用">启用</button></div></td></tr>
     </tbody>
   </table>
 </div>`;
@@ -1168,6 +1189,184 @@ ${adminHead('操作日志', '后台写操作与登录都会落表，密码等参
 </div>
 <p class="small muted mt-8">失败记录也会保留（如登录失败、状态机拒绝），便于追溯。</p>`;
 
+/* ---------------- 后台表单页 ---------------- */
+const adminCategoryForm = () => `
+${adminHead('分类编辑', '新增 / 编辑分类 · 两级结构（parent_id = 0 为一级）', '<a class="btn btn-sm" href="category.html">返回列表</a>')}
+<div class="row" style="align-items:flex-start;gap:18px">
+  <div class="content-main">
+    <div class="panel pad" style="max-width:760px">
+      <form data-ok="原型演示：分类已保存（同级重名会被拒绝）">
+        <div class="grid-2">
+          <div class="field"><label>上级分类<span class="req">*</span></label><select class="select"><option>无（一级分类）</option><option selected>家居日用</option><option>文创周边</option><option>服饰箱包</option></select><div class="help">选「无」即一级分类，其余为二级分类</div></div>
+          <div class="field"><label>名称<span class="req">*</span></label><input class="input" value="杯壶" placeholder="≤30 字，同级内唯一"></div>
+        </div>
+        <div class="field"><label>描述</label><input class="input" value="水杯、保温杯" placeholder="≤200 字，用于后台识别与前台分类页说明"></div>
+        <div class="grid-2">
+          <div class="field"><label>排序<span class="req">*</span></label><input class="input" value="1" placeholder="升序，数字越小越靠前"><div class="help">首页导航最多展示 8 个一级分类</div></div>
+          <div class="field"><label>前台可见</label><label class="switch" style="margin-top:8px"><input type="checkbox" checked><span></span></label><div class="help">关闭后前台导航与列表不再展示该分类</div></div>
+        </div>
+        <div class="row"><button class="btn btn-primary" type="submit">保存</button><a class="btn" href="category.html">取消</a></div>
+      </form>
+    </div>
+  </div>
+  <aside style="width:300px;flex:0 0 300px">
+    <div class="panel pad">
+      <b>删除限制</b>
+      <p class="small muted mt-8">存在子分类或下属商品时禁止删除（2004）；一级分类须先清空二级分类与商品。</p>
+    </div>
+    <div class="panel pad mt-16">
+      <b>层级说明</b>
+      <p class="small muted mt-8">商品只能挂在二级分类下；一级分类只用于导航与分类页聚合。</p>
+    </div>
+  </aside>
+</div>`;
+
+const adminProductForm = () => `
+${adminHead('商品编辑', '新增 / 编辑 SPU · 基本信息、主图与相册、参数表、SKU 子表', '<a class="btn btn-sm" href="product.html">返回列表</a>')}
+<form data-ok="原型演示：商品已保存（相册与参数表一并提交）">
+  <div class="row" style="align-items:flex-start;gap:18px">
+    <div class="content-main">
+      <div class="panel pad">
+        <b>基本信息</b>
+        <div class="grid-2 mt-16">
+          <div class="field"><label>所属分类<span class="req">*</span></label><select class="select"><option>家居日用 / 杯壶</option><option>文创周边 / 徽章</option><option>服饰箱包 / 帆布包</option></select><div class="help">必须是二级分类</div></div>
+          <div class="field"><label>商品名称<span class="req">*</span></label><input class="input" value="星际和平水杯 · 500ml" placeholder="≤60 字"></div>
+          <div class="field"><label>品牌</label><input class="input" value="和平号工作室" placeholder="≤30 字"></div>
+          <div class="field"><label>上架状态</label><label class="switch" style="margin-top:8px"><input type="checkbox" checked><span></span></label><div class="help">下架后前台列表消失、详情显示已下架</div></div>
+        </div>
+        <div class="field"><label>短描述</label><input class="input" value="316 不锈钢内胆 · 保温 12 小时" placeholder="≤200 字，展示在列表与详情顶部"></div>
+      </div>
+
+      <div class="panel pad mt-16">
+        <div class="between"><b>主图与相册</b><span class="small muted">jpg / png / webp，单张 ≤5MB，相册最多 5 张</span></div>
+        <div class="row wrap mt-16" style="gap:12px">
+          <div>
+            <div class="ph" style="width:120px;height:120px;font-size:40px">🥤</div>
+            <div class="small muted center mt-8">主图</div>
+          </div>
+          <div><div class="ph alt-1" style="width:88px;height:88px;font-size:28px">🥤</div><div class="small muted center mt-8">相册 1</div></div>
+          <div><div class="ph alt-2" style="width:88px;height:88px;font-size:28px">🥤</div><div class="small muted center mt-8">相册 2</div></div>
+          <div><div class="ph alt-3" style="width:88px;height:88px;font-size:28px">🥤</div><div class="small muted center mt-8">相册 3</div></div>
+          <button type="button" class="btn" data-demo="原型演示：选择图片上传（真实实现走 /admin/upload/image）" style="height:88px;width:88px">＋ 上传</button>
+        </div>
+        <div class="help mt-8">相册以逗号分隔存 <span class="mono">product.images</span>，首张建议与主图一致；前台点击缩略图切换主图。</div>
+      </div>
+
+      <div class="panel pad mt-16">
+        <div class="between"><b>商品参数</b><span class="small muted">key-value，最多 8 组，存 <span class="mono">product.specs</span> JSON</span></div>
+        <table class="table mt-16">
+          <thead><tr><th>参数名</th><th>参数值</th><th class="right">操作</th></tr></thead>
+          <tbody>
+            <tr><td><input class="input" value="材质"></td><td><input class="input" value="316 不锈钢 + 食品级 PP"></td><td class="right"><button type="button" class="btn btn-sm btn-danger" data-confirm="原型演示：已删除该参数行">删除</button></td></tr>
+            <tr><td><input class="input" value="容量"></td><td><input class="input" value="500ml"></td><td class="right"><button type="button" class="btn btn-sm btn-danger" data-confirm="原型演示：已删除该参数行">删除</button></td></tr>
+            <tr><td><input class="input" value="保温"></td><td><input class="input" value="≥ 12 小时"></td><td class="right"><button type="button" class="btn btn-sm btn-danger" data-confirm="原型演示：已删除该参数行">删除</button></td></tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn btn-sm mt-8" data-demo="原型演示：新增一行参数（上限 8 组）">+ 新增参数</button>
+      </div>
+
+      <div class="panel pad mt-16">
+        <b>SKU 子表</b>
+        <table class="table mt-16">
+          <thead><tr><th>规格</th><th>价格</th><th>库存</th><th>版本</th><th class="right">操作</th></tr></thead>
+          <tbody>
+            <tr><td><input class="input" value="500ml 星白"></td><td><input class="input" value="59.00"></td><td><input class="input" value="128"></td><td class="mono">7</td><td class="right"><a class="btn btn-sm" href="item-form.html">编辑</a></td></tr>
+            <tr><td><input class="input" value="500ml 深空黑"></td><td><input class="input" value="59.00"></td><td><input class="input" value="46"></td><td class="mono">3</td><td class="right"><a class="btn btn-sm" href="item-form.html">编辑</a></td></tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn btn-sm mt-8" data-demo="原型演示：新增一行 SKU">+ 新增 SKU</button>
+        <div class="help mt-8">规格同 SPU 内唯一；每个上架 SPU 至少保留 1 个 SKU。</div>
+      </div>
+    </div>
+
+    <aside style="width:300px;flex:0 0 300px">
+      <div class="panel pad">
+        <b>保存与删除</b>
+        <p class="small muted mt-8">存在未完结订单引用其 SKU 时禁止删除（2005）；删除为逻辑删除，订单明细走快照不受影响。</p>
+      </div>
+      <div class="panel pad mt-16">
+        <button class="btn btn-primary btn-block" type="submit">保存商品</button>
+        <a class="btn btn-block mt-8" href="product.html">取消</a>
+      </div>
+    </aside>
+  </div>
+</form>`;
+
+const adminItemForm = () => `
+${adminHead('SKU 编辑', 'SPU-1001 · 星际和平水杯 · 500ml · 新增 / 编辑 SKU', '<a class="btn btn-sm" href="item.html">返回 SKU 列表</a>')}
+<div class="row" style="align-items:flex-start;gap:18px">
+  <div class="content-main">
+    <div class="panel pad" style="max-width:760px">
+      <form data-ok="原型演示：SKU 已保存（价格与库存会做范围校验）">
+        <div class="field"><label>所属 SPU</label><input class="input" value="星际和平水杯 · 500ml（SPU-1001）" readonly></div>
+        <div class="grid-2">
+          <div class="field"><label>规格<span class="req">*</span></label><input class="input" value="500ml 星白" placeholder="≤50 字，同 SPU 内唯一"></div>
+          <div class="field"><label>价格<span class="req">*</span></label><input class="input" value="59.00" placeholder="0.01–99999.99"><div class="help">金额按 DECIMAL(10,2) 存储</div></div>
+          <div class="field"><label>库存<span class="req">*</span></label><input class="input" value="128" placeholder="0–999999"><div class="help">0 表示售罄；SKU 无单独上下架状态</div></div>
+          <div class="field"><label>版本（乐观锁）</label><input class="input mono" value="7" readonly><div class="help">后台改库存需与库中 version 一致，冲突提示刷新</div></div>
+        </div>
+        <div class="field"><label>规格图</label>
+          <div class="row wrap"><div class="ph alt-1" style="width:88px;height:88px;font-size:28px">🥤</div><button type="button" class="btn" data-demo="原型演示：选择规格图（留空则用 SPU 主图）" style="height:88px">＋ 上传</button></div>
+          <div class="help mt-8">可选；缺省时前台展示 SPU 主图</div>
+        </div>
+        <div class="row"><button class="btn btn-primary" type="submit">保存</button><a class="btn" href="item.html">取消</a></div>
+      </form>
+    </div>
+  </div>
+  <aside style="width:300px;flex:0 0 300px">
+    <div class="panel pad">
+      <b>库存与并发</b>
+      <p class="small muted mt-8">下单扣库存用 <span class="mono">stock &gt;= qty AND version = ?</span> 条件更新，失败即「库存不足」，不重试；后台补货可直接改库存，但需 version 校验。</p>
+    </div>
+    <div class="panel pad mt-16">
+      <b>删除限制</b>
+      <p class="small muted mt-8">不允许删掉 SPU 下的最后一条 SKU；存在未完结订单引用时删除同样被拒绝。</p>
+    </div>
+  </aside>
+</div>`;
+
+const adminAccountForm = () => `
+${adminHead('用户编辑', '查看用户信息 · 修改昵称/手机号/状态 · 重置密码', '<a class="btn btn-sm" href="account.html">返回列表</a>')}
+<div class="row" style="align-items:flex-start;gap:18px">
+  <div class="content-main">
+    <div class="panel pad" style="max-width:760px">
+      <form data-ok="原型演示：用户信息已保存">
+        <div class="grid-3 small" style="margin-bottom:18px">
+          <div><span class="muted">用户 ID</span><div class="mono">1274</div></div>
+          <div><span class="muted">用户名</span><div>星野</div></div>
+          <div><span class="muted">注册时间</span><div>2026-09-02 10:20</div></div>
+          <div><span class="muted">订单数</span><div>5</div></div>
+          <div><span class="muted">最后登录</span><div>2026-11-18 09:12</div></div>
+          <div><span class="muted">手机号（打码）</span><div>138****6688</div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid-2 mt-16">
+          <div class="field"><label>昵称</label><input class="input" value="星野" placeholder="≤20 字，缺省取用户名"></div>
+          <div class="field"><label>手机号</label><input class="input" value="13800006688" placeholder="11 位数字，可留空"></div>
+        </div>
+        <div class="field"><label>账号状态</label><label class="switch"><input type="checkbox" checked><span></span></label><div class="help">禁用后无法登录前台（1004），已登录会话在下次校验时失效；历史订单不受影响</div></div>
+        <div class="row"><button class="btn btn-primary" type="submit">保存</button><a class="btn" href="account.html">取消</a></div>
+      </form>
+    </div>
+
+    <div class="panel pad mt-16" style="max-width:760px">
+      <b>重置密码</b>
+      <p class="small muted mt-8">输入新密码（或生成随机 8 位）→ BCrypt 入库；旧密码立即失效，已登录会话不强制踢出。</p>
+      <form class="row wrap mt-16" data-ok="原型演示：密码已重置，请把新密码告知用户">
+        <input class="input" style="width:240px" placeholder="新密码：6–20 位，含字母与数字">
+        <button class="btn" type="submit">重置密码</button>
+        <button class="btn" type="button" data-demo="原型演示：已生成随机 8 位密码并填入">生成随机密码</button>
+      </form>
+    </div>
+  </div>
+  <aside style="width:300px;flex:0 0 300px">
+    <div class="panel pad">
+      <b>禁用联动</b>
+      <p class="small muted mt-8">禁用只影响登录与受保护页面，订单数据仍可查；后台不做到行级权限，所有变更记操作日志。</p>
+    </div>
+  </aside>
+</div>`;
+
 const adminLogin = () => `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>后台登录 · 星际和平商城</title>
@@ -1199,28 +1398,33 @@ const sitemap = () => {
     ['index.html', '首页', '§5.1 分类导航、推荐商品'],
     ['category.html', '分类页', '§5.2 一级/二级分类落地'],
     ['product-list.html', '商品列表', '§5.3 筛选 / 排序 / 搜索 / 分页'],
-    ['product-detail.html', '商品详情', '§5.4 SKU 切换、加购、立即购买'],
+    ['product-detail.html', '商品详情', '§5.4 相册、SKU 切换、加购、立即购买'],
     ['login.html', '登录', '§5.6 用户名 + 密码 + 验证码'],
     ['register.html', '注册', '§5.5 用户名唯一、密码强度'],
     ['user-center.html', '个人中心', '§5.8 账号信息、订单入口'],
+    ['change-password.html', '修改密码', '§5.8 原密码校验、改后强制重登'],
     ['cart.html', '购物车', '§5.9 改数量、勾选、合计'],
-    ['checkout.html', '确认订单', '§5.11 地址、明细、运费、提交'],
+    ['checkout.html', '确认订单', '§5.11 地址、备注、明细、运费、提交'],
     ['pay.html', '模拟支付', '§5.12 支付成功 / 取消'],
-    ['order-list.html', '订单列表', '§5.13 状态 Tab、操作按钮'],
+    ['order-list.html', '订单列表', '§5.13 状态 Tab、终态删除'],
     ['order-detail.html', '订单详情', '§5.13 时间线、明细、投诉入口'],
     ['address-list.html', '收货地址', '§5.10 默认地址、增删改'],
     ['address-form.html', '地址编辑', '§5.10 字段校验'],
     ['feedback-list.html', '我的投诉与反馈', '§5.15 类型/状态筛选'],
     ['feedback-form.html', '提交投诉', '§5.15 仅限本人已购买订单'],
-    ['feedback-detail.html', '反馈详情', '§8.4 状态时间线、卖家回复'],
+    ['feedback-detail.html', '反馈详情', '§8.4 时间线、补充说明、卖家回复'],
   ];
   const admin = [
     ['admin/login.html', '后台登录', '§6.1 独立会话'],
     ['admin/index.html', '工作台', '§6.1 概览卡片（P1）'],
     ['admin/category.html', '分类管理', '§6.2 两级分类、删除拦截'],
-    ['admin/product.html', '商品管理', '§6.3 SPU 上下架'],
+    ['admin/category-form.html', '分类编辑', '§6.2 层级、排序、前台可见'],
+    ['admin/product.html', '商品管理', '§6.3 SPU 上下架、销量'],
+    ['admin/product-form.html', '商品编辑', '§6.3 相册、参数表、SKU 子表'],
     ['admin/item.html', 'SKU 管理', '§6.3 规格、价格、库存'],
+    ['admin/item-form.html', 'SKU 编辑', '§6.3 价格库存校验、乐观锁版本'],
     ['admin/account.html', '用户管理', '§6.4 禁用、重置密码'],
+    ['admin/account-form.html', '用户编辑', '§6.4 昵称/手机号/状态、重置密码'],
     ['admin/order.html', '订单管理', '§6.5 筛选、发货、删除'],
     ['admin/order-detail.html', '订单详情（后台）', '§6.5 发货、改收货信息'],
     ['admin/feedback.html', '投诉与反馈列表', '§6.6 待处理优先'],
@@ -1244,12 +1448,13 @@ const sitemap = () => {
 /* ---------------- 输出 ---------------- */
 const pages = [
   ['index.html', layout({ title: '首页', body: pageIndex(), active: 'home' })],
-  ['category.html', layout({ title: '分类', body: pageCategory(), active: 'category' })],
+  ['category.html', layout({ title: '分类', body: pageCategory(), active: 'cat1' })],
   ['product-list.html', layout({ title: '全部商品', body: pageList(), active: 'list' })],
   ['product-detail.html', layout({ title: '商品详情', body: pageDetail(), active: 'list' })],
   ['login.html', layout({ title: '登录', body: pageLogin() })],
   ['register.html', layout({ title: '注册', body: pageRegister() })],
   ['user-center.html', layout({ title: '个人中心', body: pageCenter() })],
+  ['change-password.html', layout({ title: '修改密码', body: pageChangePassword() })],
   ['cart.html', layout({ title: '购物车', body: pageCart() })],
   ['checkout.html', layout({ title: '确认订单', body: pageCheckout() })],
   ['pay.html', layout({ title: '支付', body: pagePay() })],
@@ -1264,9 +1469,13 @@ const pages = [
   ['admin/login.html', adminLogin()],
   ['admin/index.html', layout({ title: '工作台', body: adminIndex(), admin: true, active: 'dash', crumb: '工作台' })],
   ['admin/category.html', layout({ title: '分类管理', body: adminCategory(), admin: true, active: 'cat', crumb: '分类管理' })],
+  ['admin/category-form.html', layout({ title: '分类编辑', body: adminCategoryForm(), admin: true, active: 'cat', crumb: '分类管理 / 编辑' })],
   ['admin/product.html', layout({ title: '商品管理', body: adminProduct(), admin: true, active: 'prod', crumb: '商品管理' })],
+  ['admin/product-form.html', layout({ title: '商品编辑', body: adminProductForm(), admin: true, active: 'prod', crumb: '商品管理 / 编辑' })],
   ['admin/item.html', layout({ title: 'SKU 管理', body: adminItem(), admin: true, active: 'item', crumb: '商品管理 / SKU' })],
+  ['admin/item-form.html', layout({ title: 'SKU 编辑', body: adminItemForm(), admin: true, active: 'item', crumb: '商品管理 / SKU 编辑' })],
   ['admin/account.html', layout({ title: '用户管理', body: adminAccount(), admin: true, active: 'acc', crumb: '用户管理' })],
+  ['admin/account-form.html', layout({ title: '用户编辑', body: adminAccountForm(), admin: true, active: 'acc', crumb: '用户管理 / 编辑' })],
   ['admin/order.html', layout({ title: '订单管理', body: adminOrder(), admin: true, active: 'order', crumb: '订单管理' })],
   ['admin/order-detail.html', layout({ title: '订单详情', body: adminOrderDetail(), admin: true, active: 'order', crumb: '订单管理 / 详情' })],
   ['admin/feedback.html', layout({ title: '投诉与反馈', body: adminFeedback(), admin: true, active: 'fb', crumb: '投诉与反馈' })],

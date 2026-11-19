@@ -80,6 +80,9 @@ CREATE TABLE product (
     descn       VARCHAR(200) NULL COMMENT '短描述，列表/详情顶部',
     detail      TEXT         NULL COMMENT '详情',
     main_image  VARCHAR(255) NULL COMMENT '主图 URL，空则前端用占位图',
+    images      VARCHAR(1000) NULL COMMENT '相册，逗号分隔 URL，≤5 张，首张建议与主图一致（PRD §5.4）',
+    specs       TEXT         NULL COMMENT '商品参数 JSON 对象，≤8 组 key-value（PRD §5.4）',
+    sales       INT          NOT NULL DEFAULT 0 COMMENT '累计已售件数，支付成功时累加（PRD §7.6）',
     status      TINYINT      NOT NULL DEFAULT 1 COMMENT '1 上架 / 0 下架',
     deleted     TINYINT      NOT NULL DEFAULT 0,
     create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -87,7 +90,8 @@ CREATE TABLE product (
     PRIMARY KEY (id),
     KEY idx_product_category_status (category_id, status),
     KEY idx_product_update_time (update_time),
-    KEY idx_product_name (name)
+    KEY idx_product_name (name),
+    CONSTRAINT ck_product_sales CHECK (sales >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='商品 SPU';
 
 -- ============================================================
@@ -187,6 +191,7 @@ CREATE TABLE order_item (
     id           BIGINT        NOT NULL AUTO_INCREMENT,
     order_id     BIGINT        NOT NULL,
     item_id      BIGINT        NOT NULL COMMENT '原 SKU id，仅追溯',
+    product_id   BIGINT        NOT NULL COMMENT '原 SPU id 快照，销量归集与统计用（PRD §7.6）',
     product_name VARCHAR(60)   NOT NULL COMMENT '快照',
     spec         VARCHAR(50)   NOT NULL COMMENT '快照',
     price        DECIMAL(10,2) NOT NULL COMMENT '下单时单价',
@@ -195,6 +200,7 @@ CREATE TABLE order_item (
     create_time  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_order_item_order (order_id),
+    KEY idx_order_item_product (product_id),
     CONSTRAINT ck_order_item_price CHECK (price > 0),
     CONSTRAINT ck_order_item_qty CHECK (quantity > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单明细（商品快照）';
@@ -209,6 +215,7 @@ CREATE TABLE feedback (
     order_id       BIGINT       NULL COMMENT '投诉必填，反馈为 NULL',
     category       VARCHAR(20)  NULL COMMENT 'QUALITY/LOGISTICS/SERVICE/OTHER',
     content        VARCHAR(500) NOT NULL COMMENT '正文，纯文本',
+    user_note      TEXT         NULL COMMENT '用户补充说明，按【时间】前缀分行拼接，总长 ≤1000（PRD §5.15）',
     images         VARCHAR(500) NULL COMMENT '【P1】逗号分隔 URL，≤3 张',
     contact        VARCHAR(50)  NULL COMMENT '联系方式（选填）',
     status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'

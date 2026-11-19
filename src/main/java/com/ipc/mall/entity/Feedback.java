@@ -33,6 +33,9 @@ public class Feedback extends BaseEntity {
     /** 正文，纯文本，最 500 字 */
     private String content;
 
+    /** 用户补充说明：按「【时间】」前缀分行拼接，总长 ≤1000，不改变状态（PRD §5.15） */
+    private String userNote;
+
     /** 【P1】逗号分隔的图片 URL，最多 3 张 */
     private String images;
 

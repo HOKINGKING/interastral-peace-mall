@@ -32,6 +32,15 @@ public class Product extends BaseEntity {
     /** 主图 URL，空则前端用占位图 */
     private String mainImage;
 
+    /** 相册：逗号分隔的图片 URL，≤5 张，首张建议与主图一致（PRD §5.4） */
+    private String images;
+
+    /** 商品参数：JSON 对象，≤8 组 key-value（PRD §5.4） */
+    private String specs;
+
+    /** 累计已售件数：支付成功时按订单明细累加，取消不回退（PRD §7.6） */
+    private Integer sales;
+
     /** 1 上架 / 0 下架，见 ProductStatus */
     private Integer status;
 }

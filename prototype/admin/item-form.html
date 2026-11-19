@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKU 编辑 · 星际和平商城后台</title><link rel="icon" href="../assets/ipc-logo-dark.png"><link rel="stylesheet" href="../assets/style.css"></head>
+<body>
+<div class="proto-bar">
+  <div><span class="tag">原型</span> 星际和平商城 · 卖家后台 · 数据为虚构演示</div>
+  <div><a href="../sitemap.html">页面清单</a> <span style="opacity:.35">|</span> <a href="../index.html">返回前台</a></div>
+</div>
+<div class="admin">
+  <aside class="admin-side">
+    <div class="logo-row"><span class="mark ">
+    <img class="ipc-logo" src="../assets/ipc-logo-light.png" alt="星际和平公司标识"
+         onload="this.parentElement.classList.add('has-logo')">
+    <svg class="emblem fallback" viewBox="0 0 64 64" aria-hidden="true">
+  <polygon points="32,3.5 56.5,17.5 56.5,46.5 32,60.5 7.5,46.5 7.5,17.5" fill="none" stroke="#c9a24a" stroke-width="2"/>
+  <polygon points="32,8.5 52,20.5 52,43.5 32,55.5 12,43.5 12,20.5" fill="none" stroke="#e7c873" stroke-width="1" opacity=".45"/>
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#c9a24a" stroke-width="1" opacity=".6"/>
+  <ellipse cx="32" cy="32" rx="25" ry="9" fill="none" stroke="#e7c873" stroke-width="1" opacity=".4" transform="rotate(-18 32 32)"/>
+  <path d="M32 11.5 L35.6 28.4 L52.5 32 L35.6 35.6 L32 52.5 L28.4 35.6 L11.5 32 L28.4 28.4 Z" fill="#e7c873"/>
+  <circle cx="32" cy="32" r="3.4" fill="#0b1020"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f6e2a8"/>
+</svg>
+  </span><span>卖家后台</span></div>
+    
+    <div class="group">运营</div>
+    <a href="index.html" class="">📊 工作台</a>
+    <div class="group">商品</div>
+    <a href="category.html" class="">🗂️ 分类管理</a><a href="product.html" class="">📦 商品管理</a><a href="item.html" class="active">🏷️ SKU 管理</a>
+    <div class="group">交易</div>
+    <a href="order.html" class="">🧾 订单管理</a><a href="feedback.html" class="">💬 投诉与反馈</a>
+    <div class="group">用户与日志</div>
+    <a href="account.html" class="">👤 用户管理</a><a href="log.html" class="">📜 操作日志</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-top">
+      <div class="crumb">卖家后台  / 商品管理 / SKU 编辑</div>
+      <div class="admin-user"><span class="avatar">管</span> admin（超级管理员） <a class="btn btn-sm" href="login.html" data-demo="原型演示：已退出后台（不会真的登出）">退出</a></div>
+    </div>
+    <div class="admin-body">
+
+<div class="page-title"><div><h1>SKU 编辑</h1><p>SPU-1001 · 星际和平水杯 · 500ml · 新增 / 编辑 SKU</p></div><div class="row"><a class="btn btn-sm" href="item.html">返回 SKU 列表</a></div></div>
+<div class="row" style="align-items:flex-start;gap:18px">
+  <div class="content-main">
+    <div class="panel pad" style="max-width:760px">
+      <form data-ok="原型演示：SKU 已保存（价格与库存会做范围校验）">
+        <div class="field"><label>所属 SPU</label><input class="input" value="星际和平水杯 · 500ml（SPU-1001）" readonly></div>
+        <div class="grid-2">
+          <div class="field"><label>规格<span class="req">*</span></label><input class="input" value="500ml 星白" placeholder="≤50 字，同 SPU 内唯一"></div>
+          <div class="field"><label>价格<span class="req">*</span></label><input class="input" value="59.00" placeholder="0.01–99999.99"><div class="help">金额按 DECIMAL(10,2) 存储</div></div>
+          <div class="field"><label>库存<span class="req">*</span></label><input class="input" value="128" placeholder="0–999999"><div class="help">0 表示售罄；SKU 无单独上下架状态</div></div>
+          <div class="field"><label>版本（乐观锁）</label><input class="input mono" value="7" readonly><div class="help">后台改库存需与库中 version 一致，冲突提示刷新</div></div>
+        </div>
+        <div class="field"><label>规格图</label>
+          <div class="row wrap"><div class="ph alt-1" style="width:88px;height:88px;font-size:28px">🥤</div><button type="button" class="btn" data-demo="原型演示：选择规格图（留空则用 SPU 主图）" style="height:88px">＋ 上传</button></div>
+          <div class="help mt-8">可选；缺省时前台展示 SPU 主图</div>
+        </div>
+        <div class="row"><button class="btn btn-primary" type="submit">保存</button><a class="btn" href="item.html">取消</a></div>
+      </form>
+    </div>
+  </div>
+  <aside style="width:300px;flex:0 0 300px">
+    <div class="panel pad">
+      <b>库存与并发</b>
+      <p class="small muted mt-8">下单扣库存用 <span class="mono">stock &gt;= qty AND version = ?</span> 条件更新，失败即「库存不足」，不重试；后台补货可直接改库存，但需 version 校验。</p>
+    </div>
+    <div class="panel pad mt-16">
+      <b>删除限制</b>
+      <p class="small muted mt-8">不允许删掉 SPU 下的最后一条 SKU；存在未完结订单引用时删除同样被拒绝。</p>
+    </div>
+  </aside>
+</div></div>
+  </div>
+</div>
+<script src="../assets/app.js"></script>
+</body></html>
