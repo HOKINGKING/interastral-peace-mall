@@ -1,40 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工作台 · 星际和平商城</title>
-    <link rel="icon" th:href="@{/img/ipc-logo-dark.png}">
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
-</head>
+<head th:replace="~{front/fragments/head :: head('工作台')}"></head>
 <body class="admin">
-<aside class="admin-side">
-    <div class="logo-row">
-        <img class="ipc-logo" th:src="@{/img/ipc-logo-light.png}" alt="星际和平公司标识">
-        <span>星际和平商城</span>
-    </div>
-    <div class="group">工作台</div>
-    <a class="active" th:href="@{/admin}">工作台</a>
-    <div class="group">业务模块</div>
-    <span class="admin-nav-disabled">商品管理 · 待接入</span>
-    <span class="admin-nav-disabled">订单管理 · 待接入</span>
-    <span class="admin-nav-disabled">用户管理 · 待接入</span>
-    <span class="admin-nav-disabled">操作日志 · 待接入</span>
-</aside>
+<div th:replace="~{admin/fragments/side :: side('dashboard')}"></div>
 
 <div class="admin-main">
-    <div class="admin-top">
-        <div class="crumb">工作台</div>
-        <div class="admin-user">
-            <span class="avatar"
-                  th:text="${#strings.substring(session.LOGIN_ADMIN.displayName, 0, 1)}">管</span>
-            <span th:text="${session.LOGIN_ADMIN.displayName}">管理员</span>
-            <form class="inline-form" th:action="@{/admin/logout}" method="post">
-                <button class="link-btn" type="submit">退出</button>
-            </form>
-        </div>
-    </div>
+    <div th:replace="~{admin/fragments/top :: top('工作台')}"></div>
 
     <div class="admin-body">
         <div class="page-title">

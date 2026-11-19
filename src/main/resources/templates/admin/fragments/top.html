@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="top(crumb)" class="admin-top">
+    <div class="crumb" th:text="${crumb}">工作台</div>
+    <div class="admin-user">
+        <span class="avatar"
+              th:text="${#strings.substring(session.LOGIN_ADMIN.displayName, 0, 1)}">管</span>
+        <span th:text="${session.LOGIN_ADMIN.displayName}">管理员</span>
+        <form class="inline-form" th:action="@{/admin/logout}" method="post">
+            <button class="link-btn" type="submit">退出</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
