@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head('登录')}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('login')}"></div>
+
+<main>
+    <section class="auth-wrap">
+        <div class="auth-card">
+            <h2>登录</h2>
+            <p class="muted small mb-24">使用你的星际和平账号继续</p>
+
+            <div class="auth-alert success" th:if="${message}" th:text="${message}"></div>
+
+            <form th:action="@{/user/login}" th:object="${loginForm}" method="post" novalidate data-auth-form>
+                <input type="hidden" th:field="*{redirect}">
+
+                <div class="auth-alert error" th:if="${#fields.hasGlobalErrors()}">
+                    <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+                </div>
+
+                <div class="field">
+                    <label for="username">用户名<span class="req">*</span></label>
+                    <input class="input" id="username" th:field="*{username}" placeholder="请输入用户名"
+                           autocomplete="username">
+                    <div class="error-text" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+                </div>
+
+                <div class="field">
+                    <label for="password">密码<span class="req">*</span></label>
+                    <input class="input" id="password" type="password" th:field="*{password}"
+                           placeholder="请输入密码" autocomplete="current-password">
+                    <div class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+
+                <div class="field">
+                    <label for="captcha">图形验证码<span class="req">*</span></label>
+                    <div class="row" style="gap:10px">
+                        <input class="input" id="captcha" th:field="*{captcha}" placeholder="请输入右侧 4 位字符"
+                               autocomplete="off" style="flex:1">
+                        <img class="captcha-img" th:src="@{/captcha}" alt="图形验证码" title="点击刷新">
+                    </div>
+                    <div class="help">不区分大小写，5 分钟内有效，校验后立即失效</div>
+                    <div class="error-text" th:if="${#fields.hasErrors('captcha')}" th:errors="*{captcha}"></div>
+                </div>
+
+                <button class="btn btn-primary btn-block" type="submit" style="height:42px">登录</button>
+            </form>
+
+            <div class="small muted center mt-16">
+                还没有账号？<a th:href="@{/register}" style="color:var(--brand)">立即注册</a>
+                · <a th:href="@{/}">返回首页</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/auth.js}"></script>
+</body>
+</html>

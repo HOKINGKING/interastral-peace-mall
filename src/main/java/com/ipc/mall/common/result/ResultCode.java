@@ -13,7 +13,17 @@ public enum ResultCode {
     UNAUTHORIZED(401, "未登录或登录已过期"),
     FORBIDDEN(403, "没有操作权限"),
     NOT_FOUND(404, "请求的资源不存在"),
-    ERROR(500, "服务器内部错误");
+    ERROR(500, "服务器内部错误"),
+
+    // ---------- 认证模块（PRD §10.4） ----------
+    USERNAME_EXISTS(1001, "用户名已存在"),
+    LOGIN_FAILED(1002, "用户名或密码错误"),
+    CAPTCHA_ERROR(1003, "验证码错误或已过期"),
+    ACCOUNT_DISABLED(1004, "账号已被禁用"),
+    OLD_PASSWORD_ERROR(1005, "原密码不正确"),
+
+    // ---------- 后台登录（PRD §10.4） ----------
+    ADMIN_LOGIN_FAILED(5001, "后台账号或密码错误");
 
     private final int code;
     private final String message;

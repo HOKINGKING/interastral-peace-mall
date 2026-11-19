@@ -1,9 +1,11 @@
 package com.ipc.mall.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipc.mall.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +22,8 @@ public class Account extends BaseEntity {
     private String username;
 
     /** BCrypt 密文（定长 60），绝不存明文 */
+    @JsonIgnore
+    @ToString.Exclude
     private String password;
 
     /** 昵称，缺省展示 username */

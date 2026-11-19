@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台登录 · 星际和平商城</title>
+    <link rel="icon" th:href="@{/img/ipc-logo-dark.png}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body class="admin-login-page">
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="admin-brand">
+            <img th:src="@{/img/ipc-logo-dark.png}" alt="星际和平公司标识">
+            <div>
+                <b>星际和平商城 · 卖家后台</b>
+                <span>INTERASTRAL PEACE CORPORATION</span>
+            </div>
+        </div>
+
+        <h2>后台登录</h2>
+        <p class="muted small mb-24">仅限平台管理员登录</p>
+
+        <form th:action="@{/admin/login}" th:object="${adminLoginForm}" method="post" novalidate data-auth-form>
+            <input type="hidden" th:field="*{redirect}">
+
+            <div class="auth-alert error" th:if="${#fields.hasGlobalErrors()}">
+                <div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+            </div>
+
+            <div class="field">
+                <label for="username">账号<span class="req">*</span></label>
+                <input class="input" id="username" th:field="*{username}" placeholder="请输入后台账号"
+                       autocomplete="username">
+                <div class="error-text" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+            </div>
+
+            <div class="field">
+                <label for="password">密码<span class="req">*</span></label>
+                <input class="input" id="password" type="password" th:field="*{password}"
+                       placeholder="请输入密码" autocomplete="current-password">
+                <div class="error-text" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            </div>
+
+            <div class="field">
+                <label for="captcha">图形验证码<span class="req">*</span></label>
+                <div class="row" style="gap:10px">
+                    <input class="input" id="captcha" th:field="*{captcha}" placeholder="请输入右侧 4 位字符"
+                           autocomplete="off" style="flex:1">
+                    <img class="captcha-img" th:src="@{/admin/captcha}" alt="图形验证码" title="点击刷新">
+                </div>
+                <div class="help">不区分大小写，5 分钟内有效，校验后立即失效</div>
+                <div class="error-text" th:if="${#fields.hasErrors('captcha')}" th:errors="*{captcha}"></div>
+            </div>
+
+            <button class="btn btn-primary btn-block" type="submit" style="height:42px">登录后台</button>
+        </form>
+
+        <p class="small muted center mt-16">演示账号 admin / 123456 · <a th:href="@{/}">返回前台</a></p>
+    </div>
+</div>
+<script th:src="@{/js/auth.js}"></script>
+</body>
+</html>

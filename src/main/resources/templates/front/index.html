@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head('首页')}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('home')}"></div>
+
+<main class="container page">
+    <section class="panel pad">
+        <div class="page-title">
+            <div>
+                <h1>星际和平商城</h1>
+                <p>Interastral Peace Mall · 以信用点结算，全星系 48 小时直达</p>
+            </div>
+        </div>
+
+        <div th:if="${session.LOGIN_ACCOUNT == null}">
+            <p class="muted">欢迎来到星际和平商城。登录后即可进入个人中心，后续购物车与订单模块将陆续接入。</p>
+            <div class="row mt-16">
+                <a class="btn btn-primary" th:href="@{/login}">登录</a>
+                <a class="btn" th:href="@{/register}">注册</a>
+            </div>
+        </div>
+
+        <div th:if="${session.LOGIN_ACCOUNT != null}">
+            <p>你好，<b th:text="${session.LOGIN_ACCOUNT.displayName}">开拓者</b>。认证模块已就绪。</p>
+            <div class="row mt-16">
+                <a class="btn btn-primary" th:href="@{/user/center}">进入个人中心</a>
+                <a class="btn" th:href="@{/user/password}">修改密码</a>
+                <a class="btn" th:href="@{/admin}" th:if="${session.LOGIN_ADMIN != null}">卖家后台</a>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="help">商品、分类、购物车与订单模块将在后续里程碑接入；当前首页为认证模块的落地页。</p>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head('个人中心')}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('center')}"></div>
+
+<main class="container page">
+    <div class="page-title">
+        <div>
+            <h1>个人中心</h1>
+            <p>账号资料与登录信息</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/user/password}">修改密码</a>
+    </div>
+
+    <section class="panel">
+        <table class="table profile-table">
+            <tbody>
+            <tr>
+                <th>用户名</th>
+                <td th:text="${profile.username}">xingye</td>
+            </tr>
+            <tr>
+                <th>昵称</th>
+                <td th:text="${profile.nickname}">星野</td>
+            </tr>
+            <tr>
+                <th>手机号</th>
+                <td th:text="${profile.phoneMasked}">138****0001</td>
+            </tr>
+            <tr>
+                <th>注册时间</th>
+                <td th:text="${profile.createTimeText}">2026-11-17 20:00:00</td>
+            </tr>
+            <tr>
+                <th>最后登录</th>
+                <td th:text="${profile.lastLoginTimeText}">2026-11-19 18:00:00</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <p class="help mt-16">
+        修改昵称、手机号为 P1 功能，本期暂不开放。
+    </p>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

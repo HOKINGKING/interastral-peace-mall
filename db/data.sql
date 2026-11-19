@@ -1,6 +1,6 @@
 -- Interastral Peace Mall（星际和平商城）演示数据
 -- 前置：已执行 db/schema.sql。分类与商品直接取自 HTML 原型（prototype/_build.mjs 的 CATS / PRODUCTS）。
--- 演示密码统一为 PetStore123!（BCrypt cost=10），前台 xingye / bob，后台 admin。
+-- 演示密码（BCrypt cost=10）：后台 admin / 123456；前台 xingye、bob、disabled 为 PetStore123!。
 -- 说明：item.stock 是"扣除下列示例订单后"的当前库存快照，导入时不再二次扣减，
 --       避免与原型展示的库存数字不一致。
 -- 先在空库执行；重复执行会因唯一索引/主键冲突而失败，重置请重新建库。
@@ -19,7 +19,7 @@ INSERT INTO account (id, username, password, nickname, phone, status, last_login
 
 -- ===== 2. 后台账号 =====
 INSERT INTO admin (id, username, password, nickname, status, last_login_time) VALUES
-    (1, 'admin', '$2a$10$TWF0IW1UuBapXm2v.rwh2u9CemHHGhrjybt9CLxmNcXG1t6boGrtK', '平台管理员', 1, NOW() - INTERVAL 1 HOUR);
+    (1, 'admin', '$2a$10$FPWmLwS.fLTDEQvYWLMVJeSZy1pR.Lk4xGsnhXQh7L8Mnp10U24Ei', '平台管理员', 1, NOW() - INTERVAL 1 HOUR);
 
 -- ===== 3. 分类：6 个一级 + 16 个二级（与原型 CATS 一致）=====
 INSERT INTO category (id, parent_id, name, descn, sort, visible) VALUES

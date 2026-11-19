@@ -39,19 +39,31 @@ interastral-peace-mall
     │   └── handler                      # 字段自动填充
     └── resources
         ├── application.yml
-        ├── templates/index.html         # 首页占位
-        ├── static/{css,js,img}
+        ├── templates/front/**           # 前台页面与公共片段
+        ├── templates/admin/**           # 后台页面
+        ├── static/{css,js,img}          # 从 prototype/assets 复制的样式与图标
         └── mapper/                      # 复杂 SQL 的 XML
 ```
 
 ## 三、快速启动
 
-1. **建库**：打开 Navicat → 连上本地 MySQL → 新建查询 → 执行 `db/init.sql`
-2. **改配置**：编辑 `src/main/resources/application.yml` 的 `spring.datasource.password`
+1. **建库**：打开 Navicat → 连上本地 MySQL → 依次执行 `db/schema.sql`、`db/data.sql`
+   （`db/init.sql` 是旧版仅建库自检脚本，不再作为开发依据）
+2. **改配置**：编辑 `src/main/resources/application.yml` 的 `spring.datasource.username/password`
 3. **启动**：IDEA 打开项目目录，等待 Maven 依赖下载完成，运行 `MallApplication`
 4. **验证**：
-   - 浏览器访问 <http://localhost:8080/> → 看到「星际和平商城」页面
-   - 访问 <http://localhost:8080/ping> → 返回 `{"code":200,"message":"操作成功","data":"pong",...}`
+   - 前台首页：<http://localhost:8080/>，登录：<http://localhost:8080/login>，注册：<http://localhost:8080/register>
+   - 后台登录：<http://localhost:8080/admin/login>，工作台：<http://localhost:8080/admin>
+   - 自检：<http://localhost:8080/ping> 返回 `{"code":200,"message":"操作成功","data":"pong",...}`
+
+### 演示账号
+
+| 端 | 账号 | 密码 | 说明 |
+|---|---|---|---|
+| 前台 | `xingye` | `PetStore123!` | 正常用户 |
+| 前台 | `bob` | `PetStore123!` | 正常用户 |
+| 前台 | `disabled` | `PetStore123!` | 禁用账号，登录返回 1004 |
+| 后台 | `admin` | `123456` | 管理员 |
 
 ## 四、已包含内容
 
@@ -60,17 +72,18 @@ interastral-peace-mall
 - [x] 全局异常处理（业务异常、参数校验、兜底 500）
 - [x] MyBatis-Plus 分页 + 乐观锁插件（`MybatisPlusConfig`）
 - [x] `application.yml`（数据源、MyBatis-Plus、上传、日志）
-- [x] `.gitignore`（target / .idea / uploads / application-local.yml）
-- [x] 首页占位模板 + `/ping` 自检接口
-- [x] `db/init.sql` 建库脚本
+- [x] 12 张表结构、实体与 Mapper（`db/schema.sql` / `db/data.sql`）
+- [x] 前台注册、登录、登出、图形验证码、个人中心、修改密码
+- [x] 后台登录、退出、`/admin` 工作台占位页
+- [x] 前后台登录拦截器、5 分钟账号状态回查、会话隔离
+- [x] 认证单元测试（`src/test/java/com/ipc/mall/auth`）
 
-## 五、下一步（第 0 阶段剩余）
+## 五、下一步
 
-- [ ] 补充 10 张业务表 DDL 与测试数据
-- [ ] 建立实体类 `BaseEntity` + 字段自动填充 `MyMetaObjectHandler`
-- [ ] 登录拦截器 `LoginInterceptor` + `WebMvcConfig`
-- [ ] AOP：`@OperLog` 操作日志切面、耗时监控切面
-- [ ] 建立 GitHub 仓库并推送（见下）
+- [ ] 前台商品：首页、分类页、列表、详情与 SKU 切换
+- [ ] 购物车、收货地址、下单、模拟支付、订单状态机
+- [ ] 后台分类、SPU/SKU、用户、订单、发货、操作日志
+- [ ] 投诉与反馈（前台提交 + 后台受理/回复/关闭）
 
 ## 六、Git 提交
 

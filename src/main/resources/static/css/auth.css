@@ -1,0 +1,141 @@
+/* 认证模块补充样式：在原型 style.css 之上只做少量覆盖 */
+.brand .ipc-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+}
+
+.header-actions .link-btn {
+  color: inherit;
+}
+
+.header-actions .link-btn:hover {
+  color: #fff;
+}
+
+.link-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  color: var(--brand);
+}
+
+.inline-form {
+  display: inline;
+  margin: 0;
+}
+
+.captcha-img {
+  width: 116px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 1px solid #d7deea;
+  border-radius: 10px;
+  cursor: pointer;
+  object-fit: cover;
+  background: #eef0ff;
+}
+
+.auth-alert {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-alert.error {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid #f5c2c2;
+}
+
+.auth-alert.success {
+  background: var(--ok-soft);
+  color: var(--ok);
+  border: 1px solid #bfe8d8;
+}
+
+.profile-table th {
+  width: 140px;
+}
+
+/* 后台登录 */
+.admin-login-page {
+  background: radial-gradient(900px 400px at 20% 0%, #1e2a5a, transparent 60%), #0b1020;
+}
+
+.admin-login-page .auth-wrap {
+  min-height: 100vh;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.admin-brand img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.admin-brand b {
+  display: block;
+  font-size: 14px;
+}
+
+.admin-brand span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .1em;
+}
+
+/* 后台占位页 */
+.admin-side .logo-row .ipc-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.admin-nav-disabled {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  color: #5b6b86;
+  border-left: 2px solid transparent;
+}
+
+.admin-top .link-btn {
+  color: var(--muted);
+}
+
+.admin-top .link-btn:hover {
+  color: var(--brand);
+}
+
+@media (max-width: 760px) {
+  .auth-card {
+    padding: 24px;
+  }
+
+  .admin-side {
+    display: none;
+  }
+
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
