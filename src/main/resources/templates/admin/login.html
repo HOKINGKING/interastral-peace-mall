@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台登录 · 星际和平商城</title>
-    <link rel="icon" th:href="@{/img/ipc-logo-dark.png}">
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
-</head>
+<head th:replace="~{front/fragments/head :: head('后台登录')}"></head>
 <body class="admin-login-page">
 <div class="auth-wrap">
     <div class="auth-card">
