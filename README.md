@@ -49,7 +49,10 @@ interastral-peace-mall
 
 1. **建库**：打开 Navicat → 连上本地 MySQL → 依次执行 `db/schema.sql`、`db/data.sql`
    （`db/init.sql` 是旧版仅建库自检脚本，不再作为开发依据）
-2. **改配置**：编辑 `src/main/resources/application.yml` 的 `spring.datasource.username/password`
+2. **配置数据库连接**：`application.yml` 里密码写成 `${DB_PASSWORD:hoking}`，
+   - 本机 MySQL 密码就是 `hoking` 时**无需任何操作**，直接启动；
+   - 不同环境在 IDEA 的 Run Configuration → Environment variables 里加 `DB_PASSWORD=你的密码` 即可，**不要把真实密码提交进仓库**；
+   - 用户名默认 `root`，库名 `interastral_mall`。
 3. **启动**：IDEA 打开项目目录，等待 Maven 依赖下载完成，运行 `MallApplication`
 4. **验证**：
    - 前台首页：<http://localhost:8080/>，登录：<http://localhost:8080/login>，注册：<http://localhost:8080/register>

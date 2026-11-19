@@ -13,7 +13,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/interastral_mall?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
     username: root
-    password: "123456"
+    # 真实密码不进仓库：优先读环境变量 DB_PASSWORD，未设置时回落到本机默认值。
+    # IDEA 里可在 Run Configuration 的 Environment variables 覆盖；换机器只改环境变量即可。
+    password: "${DB_PASSWORD:hoking}"
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
