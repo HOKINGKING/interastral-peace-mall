@@ -1,6 +1,6 @@
 -- Interastral Peace Mall（星际和平商城）演示数据
 -- 前置：已执行 db/schema.sql。分类与商品直接取自 HTML 原型（prototype/_build.mjs 的 CATS / PRODUCTS）。
--- 演示密码（BCrypt cost=10）：后台 admin / 123456；前台 xingye、bob、disabled 为 PetStore123!。
+-- 演示密码统一为 123456（BCrypt cost=10）：前台 xingye、bob、disabled，后台 admin。
 -- 说明：item.stock 是"扣除下列示例订单后"的当前库存快照，导入时不再二次扣减，
 --       避免与原型展示的库存数字不一致。
 -- 先在空库执行；重复执行会因唯一索引/主键冲突而失败，重置请重新建库。
@@ -13,9 +13,9 @@ START TRANSACTION;
 
 -- ===== 1. 前台账号 =====
 INSERT INTO account (id, username, password, nickname, phone, status, last_login_time) VALUES
-    (1, 'xingye',   '$2a$10$L2rlMCJruRZDIL2pXB.BBOm7LiOuhGNmxWJHJH2n2QQ.BS5JLlsOe', '星野',   '13800000001', 1, NOW() - INTERVAL 2 HOUR),
-    (2, 'bob',      '$2a$10$5f6JeeY8hi.NpV0nS7IbXep9siN.7Df4P8PLQVfhmZdq7EaLl80pm', '陈开拓', '13800000002', 1, NULL),
-    (3, 'disabled', '$2a$10$nyqfhZXjqmbrVaijpcWHVOSo7nwuOgFLyFkkp9EM3wf5y0yiao.lS', '禁用账号', NULL,       0, NULL);
+    (1, 'xingye',   '$2a$10$GSVIVskjrwLcFY24cHGFru0IJh/VwxWvMzW697rnobk1uczUJGhbq', '星野',   '13800000001', 1, NOW() - INTERVAL 2 HOUR),
+    (2, 'bob',      '$2a$10$8Q22Q9CT5ZrddWU2EPctRuQvZ3AV.cbKwbk1KLT3gYB7NH6fVBr9y', '陈开拓', '13800000002', 1, NULL),
+    (3, 'disabled', '$2a$10$fN/DvsdgwzGKBH2m3R5PbeybT73vwBV56TMJXwU.dj5.kpBspmoBu', '禁用账号', NULL,       0, NULL);
 
 -- ===== 2. 后台账号 =====
 INSERT INTO admin (id, username, password, nickname, status, last_login_time) VALUES
