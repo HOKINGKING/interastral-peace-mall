@@ -12,12 +12,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class IndexController {
 
-    /** 首页：认证模块的落地页，商品首页在 M3 替换 */
-    @GetMapping({"/", "/index"})
-    public String index() {
-        return "front/index";
-    }
-
     /** 自检接口：返回 JSON，验证统一返回结构可用 */
     @GetMapping("/ping")
     @ResponseBody

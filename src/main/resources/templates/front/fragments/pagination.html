@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 分页条：URL 由 PageUtils 生成，模板只渲染（PRD §5.3 分页） -->
+<div th:fragment="pager(pagination)" class="pagination" th:if="${pagination != null and pagination.totalPages > 1}">
+    <a th:if="${pagination.hasPrev}" th:href="${pagination.prevUrl}">上一页</a>
+    <span th:unless="${pagination.hasPrev}" class="disabled">上一页</span>
+
+    <th:block th:each="link : ${pagination.links}">
+        <span th:if="${link.ellipsis}" class="small muted" style="border:0;background:none">…</span>
+        <a th:unless="${link.ellipsis}" th:href="${link.url}"
+           th:classappend="${link.current} ? 'active' : ''" th:text="${link.no}">1</a>
+    </th:block>
+
+    <a th:if="${pagination.hasNext}" th:href="${pagination.nextUrl}">下一页</a>
+    <span th:unless="${pagination.hasNext}" class="disabled">下一页</span>
+
+    <span class="small muted" style="border:0;background:none"
+          th:text="|共 ${pagination.totalPages} 页 · ${pagination.total} 件商品|">共 1 页</span>
+</div>
+</body>
+</html>

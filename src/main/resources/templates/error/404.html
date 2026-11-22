@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head('页面不存在')}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="panel empty" style="padding:72px 20px">
+                <div class="icon">🛰️</div>
+                <h2 style="font-size:20px;margin:8px 0">页面不存在</h2>
+                <p class="muted">链接可能已失效，或商品 / 分类已被删除。</p>
+                <div class="row mt-16" style="justify-content:center">
+                    <a class="btn btn-primary" th:href="@{/}">返回首页</a>
+                    <a class="btn" th:href="@{/product/list}">全部商品</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

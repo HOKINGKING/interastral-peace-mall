@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header(${activeNav})}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <th:block th:if="${!isRoot and rootCategory != null}">
+                    <a th:href="@{/category/{id}(id=${rootCategory.id})}" th:text="${rootCategory.name}">一级分类</a>
+                    <span class="sep">›</span>
+                </th:block>
+                <span th:text="${category.name}">当前分类</span>
+            </div>
+
+            <div class="panel pad-sm mb-16" th:if="${!chips.isEmpty()}">
+                <div class="row wrap">
+                    <span class="small muted">二级分类</span>
+                    <a class="chip" th:if="${rootCategory != null}"
+                       th:classappend="${isRoot} ? 'active' : ''"
+                       th:href="@{/category/{id}(id=${rootCategory.id})}">全部</a>
+                    <a class="chip" th:each="chip : ${chips}"
+                       th:classappend="${chip.id == category.id} ? 'active' : ''"
+                       th:href="@{/category/{id}(id=${chip.id})}"
+                       th:text="${chip.name}">二级分类</a>
+                </div>
+            </div>
+
+            <div class="between mb-16">
+                <div class="row">
+                    <h2 style="font-size:17px" th:text="${category.name}">分类名</h2>
+                    <span class="small muted" th:text="|共 ${page.total} 件商品|">共 0 件商品</span>
+                </div>
+                <form method="get" th:action="@{/category/{id}(id=${category.id})}" class="row" style="margin:0;gap:8px">
+                    <input type="hidden" name="size" th:if="${size != 12}" th:value="${size}">
+                    <select class="select" name="sort" style="width:150px;height:34px" data-auto-submit>
+                        <option value="default" th:selected="${sort == 'default'}">默认排序</option>
+                        <option value="priceAsc" th:selected="${sort == 'priceAsc'}">价格从低到高</option>
+                        <option value="priceDesc" th:selected="${sort == 'priceDesc'}">价格从高到低</option>
+                        <option value="newest" th:selected="${sort == 'newest'}">最新上架</option>
+                    </select>
+                    <noscript><button class="btn btn-sm" type="submit">排序</button></noscript>
+                </form>
+            </div>
+
+            <div class="grid-products" th:if="${!page.records.isEmpty()}">
+                <th:block th:each="p : ${page.records}">
+                    <a th:replace="~{front/fragments/product :: card(${p})}"></a>
+                </th:block>
+            </div>
+
+            <div class="panel empty" th:if="${page.records.isEmpty()}">
+                <div class="icon">📦</div>
+                <div>该分类暂无商品</div>
+                <div class="small muted mt-8">可以先看看其他分类</div>
+                <div class="row wrap mt-16" style="justify-content:center;gap:8px" th:if="${navGroups != null}">
+                    <a class="chip" th:each="group : ${navGroups}"
+                       th:href="@{/category/{id}(id=${group.root.id})}"
+                       th:text="${group.root.name}">分类</a>
+                </div>
+            </div>
+
+            <div th:replace="~{front/fragments/pagination :: pager(${pagination})}"></div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

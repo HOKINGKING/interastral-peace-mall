@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('list')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <span th:text="${pageTitle}">全部商品</span>
+            </div>
+
+            <div class="panel pad mb-16 flash-panel" th:if="${listMessage != null}" th:text="${listMessage}">
+                提示
+            </div>
+
+            <div class="row" style="align-items:flex-start;gap:20px">
+                <aside class="sidebar panel">
+                    <div class="title">商品分类</div>
+                    <th:block th:each="group : ${sidebarGroups}">
+                        <a th:href="@{/product/list(categoryId=${group.root.id})}"
+                           th:classappend="${query.categoryId != null and query.categoryId == group.root.id} ? 'active' : ''"
+                           th:text="${group.root.name}">一级分类</a>
+                        <a class="sub" th:each="child : ${group.children}"
+                           th:href="@{/product/list(categoryId=${child.id})}"
+                           th:classappend="${query.categoryId != null and query.categoryId == child.id} ? 'active' : ''"
+                           th:text="${child.name}">二级分类</a>
+                    </th:block>
+                    <div class="small muted" style="padding:12px 14px" th:if="${sidebarGroups == null or sidebarGroups.isEmpty()}">
+                        暂无分类
+                    </div>
+                </aside>
+
+                <div class="content-main">
+                    <div class="panel mb-16">
+                        <div class="filter-bar" style="border-bottom:1px solid var(--line)">
+                            <span class="small muted">排序</span>
+                            <a th:each="sortLink : ${sortLinks}" class="chip"
+                               th:classappend="${sortLink.active} ? 'active' : ''"
+                               th:href="${sortLink.url}" th:text="${sortLink.label}">综合</a>
+                            <span style="flex:1"></span>
+                            <form method="get" th:action="${basePath}" class="row" style="gap:6px;margin:0">
+                                <input type="hidden" name="categoryId" th:if="${query.categoryId != null}"
+                                       th:value="${query.categoryId}">
+                                <input type="hidden" name="keyword" th:if="${query.keyword != null}"
+                                       th:value="${query.keyword}">
+                                <input type="hidden" name="sort" th:if="${query.sort != 'default'}"
+                                       th:value="${query.sort}">
+                                <input type="hidden" name="size" th:if="${query.size != 12}"
+                                       th:value="${query.size}">
+                                <label class="row small" style="gap:6px;cursor:pointer">
+                                    <input type="checkbox" class="checkbox" name="onlyInStock" value="true"
+                                           th:checked="${query.onlyInStock}" data-auto-submit>
+                                    仅看有货
+                                </label>
+                            </form>
+                        </div>
+                        <div class="filter-bar"
+                             th:if="${query.keyword != null or query.categoryId != null}">
+                            <span class="small muted">已选</span>
+                            <span class="badge badge-paid" th:if="${query.keyword != null}">
+                                <span th:text="|关键词：${query.keyword}|">关键词</span>
+                                <a th:href="${keywordChipUrl}" class="chip-remove" title="移除">×</a>
+                            </span>
+                            <span class="badge badge-paid" th:if="${query.categoryId != null}">
+                                <span th:text="|分类：${selectedCategoryName != null ? selectedCategoryName : query.categoryId}|">分类</span>
+                                <a th:href="${categoryChipUrl}" class="chip-remove" title="移除">×</a>
+                            </span>
+                            <a class="small muted" th:href="${clearUrl}">清空</a>
+                        </div>
+                    </div>
+
+                    <div class="between mb-16">
+                        <h2 style="font-size:17px" th:text="${pageTitle}">全部商品</h2>
+                        <span class="small muted" th:text="|共 ${page.total} 件商品|">共 0 件</span>
+                    </div>
+
+                    <div class="grid-products" th:if="${!page.records.isEmpty()}">
+                        <th:block th:each="p : ${page.records}">
+                            <a th:replace="~{front/fragments/product :: card(${p})}"></a>
+                        </th:block>
+                    </div>
+
+                    <div class="panel empty" th:if="${page.records.isEmpty()}">
+                        <div class="icon">🔍</div>
+                        <div>没有找到相关商品</div>
+                        <div class="small muted mt-8">试试更换关键词，或返回全部商品</div>
+                        <a class="btn btn-sm mt-16" th:href="${clearUrl}">查看全部商品</a>
+                    </div>
+
+                    <div th:replace="~{front/fragments/pagination :: pager(${pagination})}"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

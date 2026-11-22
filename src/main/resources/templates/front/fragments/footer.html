@@ -2,14 +2,20 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <body>
 <footer th:fragment="footer" class="site-footer">
-    <div class="container row" style="justify-content:space-between;flex-wrap:wrap">
-        <div>© 2026 星际和平商城 · 星际和平公司传统项目部</div>
+    <div class="container row" style="justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <div class="footer-corp">
+            <span class="mark footer-mark">
+                <img class="ipc-logo" th:src="@{/img/ipc-logo-light.png}" alt="">
+            </span>
+            <div>© 2026 星际和平商城 · 星际和平公司传统项目部</div>
+        </div>
         <div class="row" style="gap:20px">
-            <a th:href="@{/}">首页</a>
-            <a th:href="@{/login}">登录</a>
-            <a th:href="@{/register}">注册</a>
+            <a th:href="@{/product/list}">全部商品</a>
+            <a th:href="@{/feedback/form}" data-pending="投诉与反馈模块将在下一里程碑（M7）接入">意见反馈</a>
+            <a th:href="@{/admin}">卖家后台</a>
         </div>
     </div>
+    <script th:src="@{/js/front.js}"></script>
 </footer>
 </body>
 </html>

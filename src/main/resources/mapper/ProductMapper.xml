@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ipc.mall.mapper.ProductMapper">
+
+    <!--
+      商品卡聚合查询（PRD §5.3 / §11.3）
+      - JOIN item 聚合最低价、总库存、SKU 数，避免列表页 N+1
+      - JOIN category 过滤「分类已隐藏」的商品
+      - onlyInStock 用 EXISTS 子查询，必须在 SQL 层过滤，否则分页总数会失真
+      - 排序走白名单（ProductQuery 已把 sort 规范化）
+    -->
+    <select id="selectCardPage" resultType="com.ipc.mall.vo.ProductCardVO">
+        SELECT p.id,
+               p.name,
+               p.main_image,
+               p.category_id,
+               CASE WHEN pc.id IS NULL THEN c.name ELSE CONCAT(pc.name, ' / ', c.name) END AS category_name,
+               p.sales,
+               p.update_time,
+               MIN(i.price) AS min_price,
+               COALESCE(SUM(i.stock), 0) AS total_stock,
+               COUNT(i.id)  AS sku_count
+        FROM product p
+        JOIN category c ON c.id = p.category_id AND c.deleted = 0 AND c.visible = 1
+        LEFT JOIN category pc ON pc.id = c.parent_id AND pc.deleted = 0
+        JOIN item i ON i.product_id = p.id AND i.deleted = 0
+        WHERE p.deleted = 0
+          AND p.status = 1
+        <if test="q.keyword != null and q.keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{q.keyword}, '%')
+                 OR p.descn LIKE CONCAT('%', #{q.keyword}, '%'))
+        </if>
+        <choose>
+            <when test="categoryIds != null and categoryIds.size() > 0">
+                AND p.category_id IN
+                <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                    #{cid}
+                </foreach>
+            </when>
+            <!-- 传了分类但不存��（空列表）时返回空结果，而不是退化成「全部商品」 -->
+            <when test="categoryIds != null">
+                AND 1 = 0
+            </when>
+        </choose>
+        <if test="q.onlyInStock">
+            AND EXISTS (SELECT 1 FROM item s WHERE s.product_id = p.id AND s.deleted = 0 AND s.stock &gt; 0)
+        </if>
+        GROUP BY p.id, p.name, p.main_image, p.category_id, c.name, pc.id, pc.name,
+                 p.sales, p.update_time, p.create_time
+        ORDER BY
+        <choose>
+            <when test='q.sort == "priceAsc"'>min_price ASC, p.id DESC</when>
+            <when test='q.sort == "priceDesc"'>min_price DESC, p.id DESC</when>
+            <when test='q.sort == "newest"'>p.create_time DESC, p.id DESC</when>
+            <otherwise>p.update_time DESC, p.id DESC</otherwise>
+        </choose>
+    </select>
+
+</mapper>

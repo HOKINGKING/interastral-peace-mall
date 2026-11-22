@@ -1,0 +1,79 @@
+/* 商品模块补充样式：在原型 style.css / auth.css 之上做少量覆盖 */
+.flash-panel {
+  border-color: #f0d9a8;
+  background: #fdf8ea;
+  color: #8a6a1f;
+}
+
+.chip-remove {
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+/* 商品卡：真实图片与占位字符都能撑满卡片缩略区 */
+.product-card img.thumb {
+  width: 100%;
+  height: 168px;
+  object-fit: cover;
+  display: block;
+  background: #eef1f7;
+}
+
+.product-card .thumb span {
+  font-size: 56px;
+  font-weight: 700;
+}
+
+/* 详情相册 */
+.detail-main-img {
+  overflow: hidden;
+}
+
+.detail-main-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.detail-main-img span {
+  font-size: 110px;
+  font-weight: 700;
+}
+
+.detail-thumbs img.detail-thumb {
+  height: 64px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: #fff;
+}
+
+.detail-thumbs img.detail-thumb.active {
+  border-color: var(--brand);
+}
+
+.price-box {
+  background: #fdf7f7;
+  border: 1px solid #f6e3e3;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.service-strip {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+}
+
+.sidebar a.sub.active {
+  background: var(--brand-soft);
+  color: #4338ca;
+  font-weight: 600;
+}
+
+/* 列表页空状态里的按钮不要顶到文字 */
+.empty .btn {
+  margin-top: 16px;
+}

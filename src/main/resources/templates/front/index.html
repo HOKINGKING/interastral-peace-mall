@@ -4,34 +4,71 @@
 <body>
 <div th:replace="~{front/fragments/header :: header('home')}"></div>
 
-<main class="container page">
-    <section class="panel pad">
-        <div class="page-title">
-            <div>
-                <h1>星际和平商城</h1>
-                <p>Interastral Peace Mall · 以信用点结算，全星系 48 小时直达</p>
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="hero">
+                <div class="hero-mark">
+                    <img class="hero-emblem" th:src="@{/img/ipc-logo-light.png}" alt="">
+                </div>
+                <span class="seal">IPC · 官方周边直营</span>
+                <h1 style="margin-top:14px">把星海搬进日常</h1>
+                <p>从舰桥模型到随行水杯，每一件都按飞船标准做质检。今日下单，48 小时内从近地轨道仓发出。</p>
+                <p class="small" style="color:#c9b075;letter-spacing:.14em;margin-top:12px">以信用点结算 · 全星系配送 · 传统项目部直营</p>
+                <a class="btn btn-primary" th:href="@{/product/list}">逛全部商品 →</a>
+            </div>
+
+            <div class="mt-24">
+                <div class="between mb-16">
+                    <h2 style="font-size:18px">逛分类</h2>
+                    <a class="small muted" th:href="@{/product/list}">全部商品</a>
+                </div>
+                <div class="cat-grid" th:if="${navGroups != null and !navGroups.isEmpty()}">
+                    <a class="cat-tile" th:each="group : ${navGroups}"
+                       th:href="@{/category/{id}(id=${group.root.id})}">
+                        <div class="ico" th:text="${#strings.substring(group.root.name, 0, 1)}">分</div>
+                        <div class="name" th:text="${group.root.name}">分类</div>
+                    </a>
+                </div>
+                <div class="panel pad muted" th:if="${navGroups == null or navGroups.isEmpty()}">
+                    暂无可展示的分类，请先在后台维护分类数据。
+                </div>
+            </div>
+
+            <div class="mt-24">
+                <div class="between mb-16">
+                    <h2 style="font-size:18px">本季推荐</h2>
+                    <a class="small muted" th:href="@{/product/list}">查看全部 →</a>
+                </div>
+                <div class="grid-products" th:if="${!recommended.isEmpty()}">
+                    <th:block th:each="p : ${recommended}">
+                        <a th:replace="~{front/fragments/product :: card(${p})}"></a>
+                    </th:block>
+                </div>
+                <div class="panel empty" th:if="${recommended.isEmpty()}">
+                    <div class="icon">🛍️</div>
+                    还没有上架商品，去后台添加第一个 SPU 吧
+                </div>
+            </div>
+
+            <div class="mt-24 grid-3">
+                <div class="panel pad">
+                    <div class="row"><span style="font-size:22px">🛡️</span>
+                        <div><div style="font-weight:700">正品保障</div><div class="small muted">官方授权，假一赔十</div></div>
+                    </div>
+                </div>
+                <div class="panel pad">
+                    <div class="row"><span style="font-size:22px">🚀</span>
+                        <div><div style="font-weight:700">48 小时发货</div><div class="small muted">现货商品当日出库</div></div>
+                    </div>
+                </div>
+                <div class="panel pad">
+                    <div class="row"><span style="font-size:22px">↩️</span>
+                        <div><div style="font-weight:700">7 天无理由</div><div class="small muted">不影响二次销售可退</div></div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div th:if="${session.LOGIN_ACCOUNT == null}">
-            <p class="muted">欢迎来到星际和平商城。登录后即可进入个人中心，后续购物车与订单模块将陆续接入。</p>
-            <div class="row mt-16">
-                <a class="btn btn-primary" th:href="@{/login}">登录</a>
-                <a class="btn" th:href="@{/register}">注册</a>
-            </div>
-        </div>
-
-        <div th:if="${session.LOGIN_ACCOUNT != null}">
-            <p>你好，<b th:text="${session.LOGIN_ACCOUNT.displayName}">开拓者</b>。认证模块已就绪。</p>
-            <div class="row mt-16">
-                <a class="btn btn-primary" th:href="@{/user/center}">进入个人中心</a>
-                <a class="btn" th:href="@{/user/password}">修改密码</a>
-                <a class="btn" th:href="@{/admin}" th:if="${session.LOGIN_ADMIN != null}">卖家后台</a>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-        <p class="help">商品、分类、购物车与订单模块将在后续里程碑接入；当前首页为认证模块的落地页。</p>
     </section>
 </main>
 

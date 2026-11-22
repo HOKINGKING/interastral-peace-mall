@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 商品卡：首页推荐、列表页、分类页、看了又看共用（PRD §5.1 卡片口径） -->
+<a th:fragment="card(p)" class="product-card" th:href="@{/product/{id}(id=${p.id})}">
+    <img th:if="${p.mainImage != null and p.mainImage != ''}"
+         class="thumb" th:src="${p.mainImage}" th:alt="${p.name}">
+    <div th:if="${p.mainImage == null or p.mainImage == ''}" class="thumb ph"
+         th:classappend="${'alt-' + (p.id % 4 + 1)}">
+        <span th:text="${#strings.substring(p.name, 0, 1)}">星</span>
+    </div>
+    <div class="body">
+        <div class="name" th:text="${p.name}">商品名称</div>
+        <div class="between" style="margin-top:6px">
+            <div class="price">
+                <small>¥</small><span th:text="${#numbers.formatDecimal(p.minPrice, 1, 2)}">0.00</span>
+            </div>
+            <div class="small muted">已售 <span th:text="${p.sales != null ? p.sales : 0}">0</span></div>
+        </div>
+        <div class="meta">
+            <span th:text="${p.categoryName}">分类</span>
+            <span th:if="${p.soldOut}" class="badge badge-cancelled">已售罄</span>
+            <span th:unless="${p.soldOut}" class="badge badge-completed"
+                  th:text="|库存 ${p.totalStock}|">库存 0</span>
+        </div>
+    </div>
+</a>
+</body>
+</html>

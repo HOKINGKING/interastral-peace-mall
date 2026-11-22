@@ -2,6 +2,13 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <body>
 <header th:fragment="header(active)" class="site-header">
+    <div class="corp-strip">
+        <div class="container">
+            <span>星际和平公司 · 传统项目部</span>
+            <span>以信用点（Credit）结算 · 全星系 48 小时直达</span>
+        </div>
+    </div>
+
     <div class="container">
         <div class="brand-row">
             <a class="brand" th:href="@{/}">
@@ -14,13 +21,22 @@
                 </span>
             </a>
 
+            <form class="search" th:action="@{/search}" method="get" role="search">
+                <input type="search" name="keyword" maxlength="50"
+                       placeholder="搜索商品，如「水杯」「徽章」"
+                       th:value="${param.keyword != null ? param.keyword[0] : ''}">
+                <button type="submit">搜索</button>
+            </form>
+
             <div class="header-actions" th:if="${session.LOGIN_ACCOUNT == null}">
+                <a th:href="@{/cart}" data-pending="购物车模块将在下一里程碑（M5）接入">购物车</a>
                 <a th:href="@{/login}">登录</a>
                 <a th:href="@{/register}">注册</a>
             </div>
             <div class="header-actions" th:if="${session.LOGIN_ACCOUNT != null}">
-                <a th:href="@{/user/center}" th:text="${session.LOGIN_ACCOUNT.displayName}">用户</a>
-                <a th:href="@{/user/password}">修改密码</a>
+                <a th:href="@{/user/center}" th:text="|你好，${session.LOGIN_ACCOUNT.displayName}|">你好</a>
+                <a th:href="@{/order/list}" data-pending="订单模块将在下一里程碑（M5）接入">我的订单</a>
+                <a th:href="@{/cart}" data-pending="购物车模块将在下一里程碑（M5）接入">购物车</a>
                 <form class="inline-form" th:action="@{/user/logout}" method="post">
                     <button class="link-btn" type="submit">退出</button>
                 </form>
@@ -29,9 +45,13 @@
 
         <nav class="nav">
             <a th:href="@{/}" th:classappend="${active == 'home'} ? 'active' : ''">首页</a>
-            <a th:href="@{/user/center}" th:if="${session.LOGIN_ACCOUNT != null}"
-               th:classappend="${active == 'center'} ? 'active' : ''">个人中心</a>
-            <a th:href="@{/admin}" th:if="${session.LOGIN_ADMIN != null}">卖家后台</a>
+            <th:block th:if="${navGroups != null}">
+                <a th:each="group : ${navGroups}"
+                   th:href="@{/category/{id}(id=${group.root.id})}"
+                   th:classappend="${active == 'category-' + group.root.id} ? 'active' : ''"
+                   th:text="${group.root.name}">分类</a>
+            </th:block>
+            <a th:href="@{/product/list}" th:classappend="${active == 'list'} ? 'active' : ''">全部商品</a>
         </nav>
     </div>
 </header>
