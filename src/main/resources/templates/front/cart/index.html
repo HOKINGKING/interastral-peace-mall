@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('cart')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <span>购物车</span>
+            </div>
+
+            <!-- 空购物车 -->
+            <div class="panel empty" th:if="${cart.items.isEmpty()}">
+                <div class="icon">🛒</div>
+                <div>购物车还是空的</div>
+                <div class="small muted mt-8">挑几件心仪的商品再回来吧</div>
+                <a class="btn btn-sm mt-16" th:href="@{/product/list}">去逛逛 →</a>
+            </div>
+
+            <th:block th:unless="${cart.items.isEmpty()}">
+                <div class="panel" data-cart>
+                    <div class="cart-row cart-head">
+                        <input type="checkbox" class="checkbox" data-check-all checked aria-label="全选">
+                        <span></span>
+                        <span>商品</span>
+                        <span>单价</span>
+                        <span>数量</span>
+                        <span class="right">小计</span>
+                    </div>
+
+                    <div class="cart-row" th:each="item : ${cart.items}"
+                         th:classappend="${item.available} ? '' : 'is-invalid'"
+                         th:attr="data-cart-id=${item.cartId},data-price=${item.priceText},data-available=${item.available}">
+                        <input type="checkbox" class="checkbox" data-check
+                               th:checked="${item.available}" th:disabled="${!item.available}"
+                               th:attr="aria-label=|选择 ${item.productName}|">
+
+                        <div class="thumb ph" th:if="${item.image == null or item.image == ''}"
+                             th:classappend="${'alt-' + (item.cartId % 4 + 1)}">
+                            <span th:text="${#strings.substring(item.productName, 0, 1)}">星</span>
+                        </div>
+                        <img class="thumb" th:if="${item.image != null and item.image != ''}"
+                             th:src="${item.image}" th:alt="${item.productName}">
+
+                        <div>
+                            <a th:if="${item.available}" style="font-weight:600"
+                               th:href="@{/product/{id}(id=${item.productId})}"
+                               th:text="${item.productName}">商品名称</a>
+                            <span th:unless="${item.available}" style="font-weight:600"
+                                  th:text="${item.productName}">商品名称</span>
+                            <div class="small muted" th:if="${item.spec != null}" th:text="|规格：${item.spec}|">规格</div>
+                            <div class="small muted" th:if="${item.available}"
+                                 th:text="|库存 ${item.stock} 件|">库存 0 件</div>
+                            <div class="small" style="color:var(--danger)" th:if="${!item.available}"
+                                 th:text="${item.unavailableReason}">商品已下架</div>
+                            <div class="small" style="color:var(--danger)"
+                                 th:if="${item.available and item.stock < item.quantity}"
+                                 th:text="|库存仅剩 ${item.stock} 件，请调整数量|">库存不足</div>
+                            <a class="small muted cart-remove" href="javascript:void(0)" role="button" data-remove>删除</a>
+                        </div>
+
+                        <div th:text="|¥${item.priceText}|">¥0.00</div>
+
+                        <div class="qty" data-qty data-min="1" th:attr="data-max=${item.maxQty}">
+                            <button type="button" data-dec th:disabled="${!item.available}">−</button>
+                            <input th:value="${item.quantity}" readonly aria-label="数量">
+                            <button type="button" data-inc th:disabled="${!item.available}">+</button>
+                        </div>
+
+                        <div class="right">
+                            <b style="color:var(--danger)" data-subtotal th:text="|¥${item.subtotalText}|">¥0.00</b>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-bar panel mt-16">
+                    <div class="row">
+                        <label class="row small" style="gap:8px">
+                            <input type="checkbox" class="checkbox" data-check-all checked> 全选
+                        </label>
+                        <span class="small muted">已选 <b data-count>0</b> 件</span>
+                    </div>
+                    <div class="row">
+                        <span class="small muted">合计（不含运费）</span>
+                        <span class="total-amount" data-total>¥0.00</span>
+                        <!-- 勾选是纯前端状态，结算时把 cartIds 传给 /order/checkout（F24） -->
+                        <a class="btn btn-primary" style="height:42px;padding:0 26px"
+                           th:href="@{/order/checkout}"
+                           data-pending="订单模块将在下一里程碑（M5）接入">去结算</a>
+                    </div>
+                </div>
+                <p class="small muted mt-8">运费本期固定 ¥0.00；库存变化会在结算时重新校验。</p>
+            </th:block>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/cart.js}"></script>
+</body>
+</html>

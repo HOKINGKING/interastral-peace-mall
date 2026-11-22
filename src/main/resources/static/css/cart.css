@@ -1,0 +1,52 @@
+/*
+ * 购物车页样式（PRD §5.9，对齐原型 prototype/cart.html）。
+ * 骨架（.cart-row / .cart-bar / .total-amount / .checkbox）已在 style.css，
+ * 这里只补失效商品置灰与缩略图两处。
+ */
+.cart-head {
+    background: #fafbfe;
+    color: var(--muted);
+    font-size: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.cart-head .checkbox {
+    pointer-events: none;
+}
+
+/* 失效商品（下架 / 已删除）：置灰、不参与合计 */
+.cart-row.is-invalid {
+    color: #9aa4b8;
+    background: #fcfcfd;
+}
+
+.cart-row.is-invalid .thumb {
+    filter: grayscale(1);
+    opacity: .55;
+}
+
+.cart-row.is-invalid .qty {
+    opacity: .55;
+}
+
+/* 缩略图：有图时铺满 92px 的格子，无图时回落到 .ph 渐变占位块 */
+.cart-row img.thumb {
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    display: block;
+}
+
+.cart-row .qty button:disabled {
+    cursor: not-allowed;
+    color: #c3cbdb;
+}
+
+.cart-remove {
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.cart-remove:hover {
+    color: var(--danger);
+}

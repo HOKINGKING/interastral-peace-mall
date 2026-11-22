@@ -110,9 +110,9 @@
                                 <a class="btn" style="height:44px;padding:0 28px"
                                    th:href="@{/login(redirect=${'/product/' + detail.product.id})}">立即购买</a>
                             </div>
-                            <!-- 已登录：购物车/结算模块在 M5，先用提示条占位，避免 404 -->
+                            <!-- 已登录：加购由 static/js/cart.js 用 fetch 提交，失败信息走统一 Result -->
                             <form class="row" th:if="${session.LOGIN_ACCOUNT != null}" method="post"
-                                  th:action="@{/cart/add}" data-pending="购物车模块将在下一里程碑（M5）接入">
+                                  th:action="@{/cart/add}">
                                 <input type="hidden" name="itemId" id="cartItemId"
                                        th:value="${detail.defaultSku.id}">
                                 <input type="hidden" name="quantity" class="js-qty-target" value="1">
@@ -163,5 +163,6 @@
 </main>
 
 <div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/cart.js}"></script>
 </body>
 </html>

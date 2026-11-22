@@ -29,14 +29,17 @@
             </form>
 
             <div class="header-actions" th:if="${session.LOGIN_ACCOUNT == null}">
-                <a th:href="@{/cart}" data-pending="购物车模块将在下一里程碑（M5）接入">购物车</a>
+                <a class="cart-link" th:href="@{/cart}">购物车<span class="count"
+                        th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span></a>
                 <a th:href="@{/login}">登录</a>
                 <a th:href="@{/register}">注册</a>
             </div>
             <div class="header-actions" th:if="${session.LOGIN_ACCOUNT != null}">
                 <a th:href="@{/user/center}" th:text="|你好，${session.LOGIN_ACCOUNT.displayName}|">你好</a>
                 <a th:href="@{/order/list}" data-pending="订单模块将在下一里程碑（M5）接入">我的订单</a>
-                <a th:href="@{/cart}" data-pending="购物车模块将在下一里程碑（M5）接入">购物车</a>
+                <!-- 角标 = 购物车商品总件数（PRD §5.9），由 FrontModelAdvice 提供 -->
+                <a class="cart-link" th:href="@{/cart}">购物车<span class="count"
+                        th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span></a>
                 <form class="inline-form" th:action="@{/user/logout}" method="post">
                     <button class="link-btn" type="submit">退出</button>
                 </form>
