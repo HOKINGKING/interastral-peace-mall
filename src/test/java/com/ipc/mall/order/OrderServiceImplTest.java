@@ -1,0 +1,388 @@
+package com.ipc.mall.order;
+
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.ipc.mall.common.constant.OrderStatus;
+import com.ipc.mall.common.constant.ProductStatus;
+import com.ipc.mall.common.exception.BizException;
+import com.ipc.mall.common.result.ResultCode;
+import com.ipc.mall.dto.OrderSubmitForm;
+import com.ipc.mall.entity.Address;
+import com.ipc.mall.entity.Item;
+import com.ipc.mall.entity.Order;
+import com.ipc.mall.entity.OrderItem;
+import com.ipc.mall.entity.Product;
+import com.ipc.mall.mapper.AddressMapper;
+import com.ipc.mall.mapper.ItemMapper;
+import com.ipc.mall.mapper.OrderItemMapper;
+import com.ipc.mall.mapper.OrderMapper;
+import com.ipc.mall.mapper.ProductMapper;
+import com.ipc.mall.service.AddressService;
+import com.ipc.mall.service.CartService;
+import com.ipc.mall.service.impl.OrderServiceImpl;
+import com.ipc.mall.vo.AddressVO;
+import com.ipc.mall.vo.CartItemVO;
+import com.ipc.mall.vo.CheckoutVO;
+import com.ipc.mall.vo.OrderItemVO;
+import org.junit.jupiter.api.BeforeEach;import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * 结算下单（PRD §5.11）。
+ * <p>
+ * 重点：金额以数据库现价为准、校验顺序与错误码、下单/明细/扣库存/清购物车在同一事务里、
+ * 扣库存 0 行要整单失败。
+ */
+class OrderServiceImplTest {
+
+    private OrderMapper orderMapper;
+    private OrderItemMapper orderItemMapper;
+    private ItemMapper itemMapper;
+    private ProductMapper productMapper;
+    private CartService cartService;
+    private AddressService addressService;
+    private AddressMapper addressMapper;
+    private OrderServiceImpl orderService;
+
+    @BeforeEach
+    void setUp() {
+        orderMapper = mock(OrderMapper.class);
+        orderItemMapper = mock(OrderItemMapper.class);
+        itemMapper = mock(ItemMapper.class);
+        productMapper = mock(ProductMapper.class);
+        cartService = mock(CartService.class);
+        addressService = mock(AddressService.class);
+        addressMapper = mock(AddressMapper.class);
+        orderService = new OrderServiceImpl(orderMapper, orderItemMapper, itemMapper, productMapper,
+                cartService, addressService, addressMapper);
+        when(orderMapper.insert(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            order.setId(100L);
+            return 1;
+        });
+    }
+
+    // ------------------------------------------------------------ 确认页
+
+    @Test
+    void 购物车结算按数据库现价组装明细() {
+        when(cartService.listByIds(1L, List.of(1L, 2L))).thenReturn(List.of(
+                cart(1L, 6L, 2), cart(2L, 8L, 1)));
+        when(itemMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                sku(6L, 4L, "39.00", 240, 3), sku(8L, 6L, "49.00", 88, 5)));
+        when(productMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                product(4L, "驾驶员徽章套装（6 枚）", ProductStatus.ON_SALE),
+                product(6L, "命运星图海报 · A2", ProductStatus.ON_SALE)));
+        when(addressService.list(1L)).thenReturn(List.of(addressVO(1L, true)));
+
+        CheckoutVO vo = orderService.checkout(1L, "1,2", null, null);
+
+        assertEquals(2, vo.getItems().size());
+        assertNull(vo.getBlocked());
+        assertEquals("39.00", vo.getItems().get(0).getPriceText());
+        assertEquals("78.00", vo.getItems().get(0).getSubtotalText());
+        assertEquals("127.00", vo.getGoodsAmountText());
+        assertEquals("127.00", vo.getTotalAmountText());
+        assertEquals("0.00", vo.getFreightAmountText());
+        assertEquals(3, vo.getTotalQuantity());
+        assertEquals(1L, vo.getDefaultAddressId());
+        assertEquals("1,2", vo.getCartIds());
+    }
+
+    @Test
+    void 立即购买只组装一条且不带cartIds() {
+        when(itemMapper.selectById(5L)).thenReturn(sku(5L, 3L, "299.00", 12, 1));
+        when(productMapper.selectById(3L)).thenReturn(product(3L, "舰桥模型 · 纪念版", ProductStatus.ON_SALE));
+
+        CheckoutVO vo = orderService.checkout(1L, null, 5L, 2);
+
+        assertEquals(1, vo.getItems().size());
+        assertEquals("598.00", vo.getTotalAmountText());
+        assertNull(vo.getCartIds());
+        assertEquals(5L, vo.getItemId());
+        assertEquals(2, vo.getQuantity());
+    }
+
+    @Test
+    void 确认页在商品下架时给出提示但不抛异常() {
+        when(cartService.listByIds(1L, List.of(1L))).thenReturn(List.of(cart(1L, 6L, 1)));
+        when(itemMapper.selectBatchIds(anyCollection())).thenReturn(List.of(sku(6L, 4L, "39.00", 240, 0)));
+        when(productMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                product(4L, "驾驶员徽章套装（6 枚）", ProductStatus.OFF_SALE)));
+        when(addressService.list(1L)).thenReturn(List.of());
+
+        CheckoutVO vo = orderService.checkout(1L, "1", null, null);
+
+        assertNotNull(vo.getBlocked());
+        assertTrue(vo.getBlocked().contains("已下架"));
+        assertFalse(vo.getItems().get(0).isAvailable());
+        assertNull(vo.getDefaultAddressId());
+    }
+
+    @Test
+    void 确认页在库存不足时给出提示() {
+        when(cartService.listByIds(1L, List.of(1L))).thenReturn(List.of(cart(1L, 6L, 5)));
+        when(itemMapper.selectBatchIds(anyCollection())).thenReturn(List.of(sku(6L, 4L, "39.00", 2, 0)));
+        when(productMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                product(4L, "驾驶员徽章套装（6 枚）", ProductStatus.ON_SALE)));
+
+        CheckoutVO vo = orderService.checkout(1L, "1", null, null);
+
+        assertNotNull(vo.getBlocked());
+        assertTrue(vo.getBlocked().contains("库存不足"));
+        assertFalse(vo.getItems().get(0).isStockEnough());
+    }
+
+    @Test
+    void 没选商品时确认页提示空购物车() {
+        when(cartService.listByIds(1L, List.of(9L))).thenReturn(List.of());
+
+        CheckoutVO vo = orderService.checkout(1L, "9", null, null);
+
+        assertTrue(vo.getItems().isEmpty());
+        assertEquals(ResultCode.CART_EMPTY.getMessage(), vo.getBlocked());
+    }
+
+    // ------------------------------------------------------------ 提交校验顺序
+
+    @Test
+    void 没有可结算商品返回三千零五() {
+        when(cartService.listByIds(1L, List.of(9L))).thenReturn(List.of());
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("9", null, null, "备注", 1L)));
+        assertEquals(ResultCode.CART_EMPTY.getCode(), exception.getCode());
+        verify(orderMapper, never()).insert(any(Order.class));
+    }
+
+    @Test
+    void 商品已下架返回两千零一() {
+        mockCartLine(6L, 1, ProductStatus.OFF_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("1", null, null, null, 1L)));
+        assertEquals(ResultCode.PRODUCT_OFF_SALE.getCode(), exception.getCode());
+        verify(orderMapper, never()).insert(any(Order.class));
+    }
+
+    @Test
+    void 库存不足返回两千零二() {
+        mockCartLine(6L, 3, ProductStatus.ON_SALE, 2);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("1", null, null, null, 1L)));
+        assertEquals(ResultCode.STOCK_NOT_ENOUGH.getCode(), exception.getCode());
+        verify(itemMapper, never()).deductStock(anyLong(), anyInt(), anyInt());
+    }
+
+    @Test
+    void 地址不属于本人返回三千零四() {
+        mockCartLine(6L, 1, ProductStatus.ON_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 2L));
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("1", null, null, null, 1L)));
+        assertEquals(ResultCode.NO_PERMISSION.getCode(), exception.getCode());
+        verify(orderMapper, never()).insert(any(Order.class));
+    }
+
+    @Test
+    void 备注超过两百字返回四百() {
+        mockCartLine(6L, 1, ProductStatus.ON_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+
+        String longRemark = "备".repeat(201);
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("1", null, null, longRemark, 1L)));
+        assertEquals(ResultCode.FAIL.getCode(), exception.getCode());
+        verify(orderMapper, never()).insert(any(Order.class));
+    }
+
+    // ------------------------------------------------------------ 下单成功
+
+    @Test
+    void 提交成功落订单明细并扣库存清购物车() {
+        mockCartLine(6L, 2, ProductStatus.ON_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+        when(itemMapper.deductStock(6L, 2, 3)).thenReturn(1);
+
+        Long orderId = orderService.submit(1L,
+                form("1", null, null, "   WORKDAY 送达  ", 1L));
+
+        assertEquals(100L, orderId);
+
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderMapper).insert(orderCaptor.capture());
+        Order order = orderCaptor.getValue();
+        assertEquals(1L, order.getAccountId());
+        assertEquals(OrderStatus.PENDING_PAYMENT.name(), order.getStatus());
+        assertEquals("78.00", order.getTotalAmount().toPlainString());
+        assertEquals("0.00", order.getFreightAmount().toPlainString());
+        assertEquals("WORKDAY 送达", order.getRemark());
+        // 收货信息是快照
+        assertEquals("星野", order.getReceiverName());
+        assertEquals("13900000001", order.getReceiverPhone());
+        assertEquals("湖南省", order.getReceiverProvince());
+        assertEquals("星轨大道 88 号", order.getReceiverDetail());
+        assertNotNull(order.getOrderNo());
+        assertEquals(18, order.getOrderNo().length());
+
+        ArgumentCaptor<OrderItem> itemCaptor = ArgumentCaptor.forClass(OrderItem.class);
+        verify(orderItemMapper).insert(itemCaptor.capture());
+        OrderItem line = itemCaptor.getValue();
+        assertEquals(100L, line.getOrderId());
+        assertEquals(6L, line.getItemId());
+        assertEquals(4L, line.getProductId(), "销量归集用的是 product_id");
+        assertEquals("驾驶员徽章套装（6 枚）", line.getProductName());
+        assertEquals("6 枚装", line.getSpec());
+        assertEquals("39.00", line.getPrice().toPlainString());
+        assertEquals(2, line.getQuantity());
+
+        verify(itemMapper).deductStock(6L, 2, 3);
+        verify(cartService).remove(1L, 1L);
+    }
+
+    @Test
+    void 扣库存零行时抛两千零二() {
+        mockCartLine(6L, 1, ProductStatus.ON_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+        when(itemMapper.deductStock(6L, 1, 3)).thenReturn(0);
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form("1", null, null, null, 1L)));
+        assertEquals(ResultCode.STOCK_NOT_ENOUGH.getCode(), exception.getCode());
+        // 事务由 @Transactional 回滚：这里只验证异常被抛出、购物车没被清
+        verify(cartService, never()).remove(any(), any());
+    }
+
+    @Test
+    void 立即购买不经过购物车() {
+        when(itemMapper.selectById(5L)).thenReturn(sku(5L, 3L, "299.00", 12, 1));
+        when(productMapper.selectById(3L)).thenReturn(product(3L, "舰桥模型 · 纪念版", ProductStatus.ON_SALE));
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+        when(itemMapper.deductStock(5L, 1, 1)).thenReturn(1);
+
+        orderService.submit(1L, form(null, 5L, 1, null, 1L));
+
+        verify(cartService, never()).listByIds(any(), any());
+        verify(cartService, never()).remove(any(), any());
+        verify(itemMapper).deductStock(5L, 1, 1);
+    }
+
+    @Test
+    void 立即购买数量越界返回四百() {
+        when(itemMapper.selectById(5L)).thenReturn(sku(5L, 3L, "299.00", 12, 1));
+        when(productMapper.selectById(3L)).thenReturn(product(3L, "舰桥模型 · 纪念版", ProductStatus.ON_SALE));
+
+        BizException exception = assertThrows(BizException.class,
+                () -> orderService.submit(1L, form(null, 5L, 100, null, 1L)));
+        assertEquals(ResultCode.FAIL.getCode(), exception.getCode());
+    }
+
+    @Test
+    void 空备注归一化为null() {
+        mockCartLine(6L, 1, ProductStatus.ON_SALE, 240);
+        when(addressMapper.selectById(1L)).thenReturn(address(1L, 1L));
+        when(itemMapper.deductStock(6L, 1, 3)).thenReturn(1);
+
+        orderService.submit(1L, form("1", null, null, "   ", 1L));
+
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        verify(orderMapper).insert(captor.capture());
+        assertNull(captor.getValue().getRemark());
+    }
+
+    // ------------------------------------------------------------ 夹具
+
+    private void mockCartLine(Long itemId, int quantity, int productStatus, int stock) {
+        when(cartService.listByIds(1L, List.of(1L))).thenReturn(List.of(cart(1L, itemId, quantity)));
+        when(itemMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                sku(itemId, 4L, "39.00", stock, 3)));
+        when(productMapper.selectBatchIds(anyCollection())).thenReturn(List.of(
+                product(4L, "驾驶员徽章套装（6 枚）", productStatus)));
+    }
+
+    private OrderSubmitForm form(String cartIds, Long itemId, Integer quantity, String remark, Long addressId) {
+        OrderSubmitForm form = new OrderSubmitForm();
+        form.setSubmitToken("token");
+        form.setCartIds(cartIds);
+        form.setItemId(itemId);
+        form.setQuantity(quantity);
+        form.setRemark(remark);
+        form.setAddressId(addressId);
+        return form;
+    }
+
+    private CartItemVO cart(Long cartId, Long itemId, int quantity) {
+        CartItemVO vo = new CartItemVO();
+        vo.setCartId(cartId);
+        vo.setItemId(itemId);
+        vo.setQuantity(quantity);
+        vo.setAvailable(true);
+        return vo;
+    }
+
+    private Item sku(Long id, Long productId, String price, int stock, int version) {
+        Item item = new Item();
+        item.setId(id);
+        item.setProductId(productId);
+        item.setSpec("6 枚装");
+        item.setPrice(new BigDecimal(price));
+        item.setStock(stock);
+        item.setVersion(version);
+        return item;
+    }
+
+    private Product product(Long id, String name, int status) {
+        Product product = new Product();
+        product.setId(id);
+        product.setName(name);
+        product.setStatus(status);
+        return product;
+    }
+
+    private Address address(Long id, Long accountId) {
+        Address address = new Address();
+        address.setId(id);
+        address.setAccountId(accountId);
+        address.setReceiver("星野");
+        address.setPhone("13900000001");
+        address.setProvince("湖南省");
+        address.setCity("长沙市");
+        address.setDistrict("岳麓区");
+        address.setDetail("星轨大道 88 号");
+        address.setIsDefault(1);
+        return address;
+    }
+
+    private AddressVO addressVO(Long id, boolean defaultFlag) {
+        AddressVO vo = new AddressVO();
+        vo.setId(id);
+        vo.setReceiver("星野");
+        vo.setPhoneMasked("139****0001");
+        vo.setFullAddress("湖南省 长沙市 岳麓区 星轨大道 88 号");
+        vo.setDefaultFlag(defaultFlag);
+        return vo;
+    }
+}

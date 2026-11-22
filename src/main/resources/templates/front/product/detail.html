@@ -118,9 +118,8 @@
                                 <input type="hidden" name="quantity" class="js-qty-target" value="1">
                                 <button class="btn btn-primary" type="submit"
                                         style="height:44px;padding:0 28px">加入购物车</button>
-                                <button class="btn" type="submit" formaction="/order/checkout" formmethod="get"
-                                        style="height:44px;padding:0 28px"
-                                        data-pending="订单模块将在下一里程碑（M5）接入">立即购买</button>
+                                <button class="btn" type="submit" th:formaction="@{/order/checkout}" formmethod="get"
+                                        style="height:44px;padding:0 28px">立即购买</button>
                             </form>
                         </div>
 

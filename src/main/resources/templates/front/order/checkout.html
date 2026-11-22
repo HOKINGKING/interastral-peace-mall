@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('cart')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <a th:href="@{/cart}">购物车</a>
+                <span class="sep">›</span>
+                <span>确认订单</span>
+            </div>
+
+            <div class="panel pad-sm mb-16">
+                <div class="steps">
+                    <div class="step done"><div class="n">✓</div>购物车</div>
+                    <div class="step active"><div class="n">2</div>确认订单</div>
+                    <div class="step"><div class="n">3</div>支付</div>
+                    <div class="step"><div class="n">4</div>完成</div>
+                </div>
+            </div>
+
+            <!-- 上一次提交失败的原因（flash） -->
+            <div class="panel pad mb-16" th:if="${checkoutError != null}"
+                 style="border-color:#f3c9c9;background:var(--danger-soft);color:var(--danger)"
+                 th:text="${checkoutError}">错误原因</div>
+
+            <!-- 不能结算的提示：下架 / 库存不足 / 没选商品 -->
+            <div class="panel pad mb-16" th:if="${checkout.blocked != null}"
+                 style="border-color:#fde68a;background:var(--warn-soft);color:var(--warn)">
+                暂时无法结算：<b th:text="${checkout.blocked}">原因</b>
+            </div>
+
+            <div class="panel empty" th:if="${checkout.items.isEmpty()}">
+                <div class="icon">🧾</div>
+                <div>没有可结算的商品</div>
+                <div class="small muted mt-8">回购物车勾选商品，或去商品详情页「立即购买」</div>
+                <div class="row mt-16" style="justify-content:center;gap:8px">
+                    <a class="btn btn-sm" th:href="@{/cart}">返回购物车</a>
+                    <a class="btn btn-sm btn-primary" th:href="@{/product/list}">去逛逛</a>
+                </div>
+            </div>
+
+            <form th:unless="${checkout.items.isEmpty()}" th:action="@{/order/submit}" method="post">
+                <input type="hidden" name="submitToken" th:value="${checkout.submitToken}">
+                <input type="hidden" name="cartIds" th:if="${checkout.cartIds != null}"
+                       th:value="${checkout.cartIds}">
+                <input type="hidden" name="itemId" th:if="${checkout.itemId != null}"
+                       th:value="${checkout.itemId}">
+                <input type="hidden" name="quantity" th:if="${checkout.quantity != null}"
+                       th:value="${checkout.quantity}">
+
+                <div class="row" style="align-items:flex-start;gap:20px">
+                    <div class="content-main">
+                        <!-- 收货地址 -->
+                        <div class="panel pad">
+                            <div class="between mb-16">
+                                <b>收货地址</b>
+                                <a class="btn btn-sm" th:href="@{/address/form}">新增地址</a>
+                            </div>
+                            <div class="grid-2" th:if="${!checkout.addresses.isEmpty()}">
+                                <label class="addr-card" th:each="addr : ${checkout.addresses}"
+                                       th:classappend="${addr.id == checkout.defaultAddressId} ? 'active' : ''">
+                                    <input type="radio" class="checkbox" name="addressId" th:value="${addr.id}"
+                                           th:checked="${addr.id == checkout.defaultAddressId}">
+                                    <div class="who" style="display:inline-block;margin-left:6px"
+                                         th:text="|${addr.receiver} · ${addr.phoneMasked}|">星野 · 138****0001</div>
+                                    <span class="badge badge-paid" th:if="${addr.defaultFlag}">默认</span>
+                                    <div class="small muted mt-8" th:text="${addr.fullAddress}">地址</div>
+                                </label>
+                            </div>
+                            <div class="small muted" th:if="${checkout.addresses.isEmpty()}">
+                                还没有收货地址，先 <a th:href="@{/address/form}">添加一条收货地址</a> 再来结算。
+                            </div>
+                        </div>
+
+                        <!-- 商品明细 -->
+                        <div class="panel mt-16">
+                            <div class="pad-sm" style="border-bottom:1px solid var(--line)"><b>商品明细</b></div>
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>商品</th>
+                                    <th>单价</th>
+                                    <th>数量</th>
+                                    <th class="right">小计</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${checkout.items}">
+                                    <td>
+                                        <div class="row">
+                                            <span class="ph" style="width:44px;height:44px;font-size:16px;flex:0 0 44px"
+                                                  th:if="${item.image == null}"
+                                                  th:text="${#strings.substring(item.productName, 0, 1)}">星</span>
+                                            <img th:if="${item.image != null}" th:src="${item.image}"
+                                                 th:alt="${item.productName}"
+                                                 style="width:44px;height:44px;border-radius:8px;object-fit:cover">
+                                            <div>
+                                                <span th:text="${item.productName}">商品名</span>
+                                                <div class="small muted" th:if="${item.spec != null}"
+                                                     th:text="${item.spec}">规格</div>
+                                                <div class="small" style="color:var(--danger)"
+                                                     th:if="${!item.available}">商品已下架或不存在</div>
+                                                <div class="small" style="color:var(--danger)"
+                                                     th:if="${item.available and !item.stockEnough}"
+                                                     th:text="|库存仅剩 ${item.stock} 件|">库存不足</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="|¥${item.priceText}|">¥0.00</td>
+                                    <td th:text="${item.quantity}">1</td>
+                                    <td class="right" th:text="|¥${item.subtotalText}|">¥0.00</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="pad-sm">
+                                <label class="small muted" for="remark">订单备注（选填，≤200 字）</label>
+                                <input class="input mt-8" id="remark" name="remark" maxlength="200"
+                                       placeholder="选填，如：工作日送达 / 放前台">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 费用与提交 -->
+                    <aside class="panel pad" style="width:340px;flex:0 0 340px">
+                        <b>费用明细</b>
+                        <div class="divider"></div>
+                        <div class="between small">
+                            <span class="muted">商品总额</span>
+                            <span th:text="|¥${checkout.goodsAmountText}|">¥0.00</span>
+                        </div>
+                        <div class="between small mt-8">
+                            <span class="muted">运费</span>
+                            <span th:text="|¥${checkout.freightAmountText}|">¥0.00</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="between">
+                            <span>应付</span>
+                            <span class="total-amount" th:text="|¥${checkout.totalAmountText}|">¥0.00</span>
+                        </div>
+                        <button class="btn btn-primary btn-block mt-16" type="submit"
+                                style="height:44px"
+                                th:disabled="${checkout.blocked != null or checkout.addresses.isEmpty()}">
+                            提交订单
+                        </button>
+                        <a class="btn btn-block mt-8" th:href="@{/cart}">返回购物车</a>
+                        <p class="small muted mt-8">提交前会再次校验库存，库存不足会提示并回到本页。</p>
+                    </aside>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/order.js}"></script>
+</body>
+</html>

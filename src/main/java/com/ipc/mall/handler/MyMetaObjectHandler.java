@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
  * <p>
  * deleted 必须在 insert 时显式填 0：数据库列虽然是 {@code DEFAULT 0}，
  * 但 MyBatis-Plus 会把实体里的 null 当成 SQL 的 NULL 插进去，触发 NOT NULL 约束错误。
+ * <p>
+ * 注意 {@code order_item} 这类表<b>不继承 BaseEntity</b>，没有 update_time / deleted，
+ * 所以每个字段都要先判断实体上是否存在，否则反射取值会抛
+ * {@code There is no getter for property named 'deleted'}。
  */
 @Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
@@ -23,7 +27,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         LocalDateTime now = LocalDateTime.now();
         this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
-        if (metaObject.getValue("deleted") == null) {
+        if (metaObject.hasGetter("deleted") && metaObject.getValue("deleted") == null) {
             this.strictInsertFill(metaObject, "deleted", Integer.class, 0);
         }
     }

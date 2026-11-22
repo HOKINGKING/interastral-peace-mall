@@ -28,7 +28,14 @@ public enum ResultCode {
     // ---------- 商品 / 购物车 / 订单（PRD §10.4） ----------
     PRODUCT_OFF_SALE(2001, "商品不存在或已下架"),
     STOCK_NOT_ENOUGH(2002, "库存不足"),
-    NO_PERMISSION(3004, "无权操作该资源");
+    NO_PERMISSION(3004, "无权操作该资源"),
+
+    // ---------- 订单（PRD §10.4 / §8） ----------
+    ORDER_NOT_FOUND(3001, "订单不存在"),
+    ORDER_STATUS_INVALID(3002, "当前状态不允许该操作"),
+    ORDER_NOT_OWNED(3003, "无权操作该订单"),
+    CART_EMPTY(3005, "请选择要结算的商品"),
+    DUPLICATE_SUBMIT(3006, "请勿重复提交");
 
     private final int code;
     private final String message;

@@ -202,6 +202,17 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    public List<CartItemVO> listByIds(Long accountId, List<Long> cartIds) {
+        if (accountId == null || cartIds == null || cartIds.isEmpty()) {
+            return List.of();
+        }
+        // 复用 list 的可用性判定，避免结算和购物车页两套口径
+        return list(accountId).getItems().stream()
+                .filter(item -> cartIds.contains(item.getCartId()))
+                .toList();
+    }
+
+    @Override
     public int count(Long accountId) {
         if (accountId == null) {
             return 0;

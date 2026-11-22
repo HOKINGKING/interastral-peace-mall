@@ -89,6 +89,10 @@
   var addForm = document.querySelector('form[action$="/cart/add"]');
   if (addForm) {
     addForm.addEventListener('submit', function (event) {
+      // 同一表单里的「立即购买」按钮带 formaction="/order/checkout"，交回浏览器直接 GET 到结算页
+      if (event.submitter && event.submitter.getAttribute('formaction')) {
+        return;
+      }
       event.preventDefault();
       var submit = addForm.querySelector('button[type="submit"]');
       if (!submit || submit.disabled) {
@@ -267,4 +271,22 @@
   });
 
   recompute();
+
+  // 去结算：勾选状态只在前端，这里把勾选行拼成 cartIds 再跳确认页（F24）
+  var checkoutLink = document.querySelector('[data-checkout]');
+  if (checkoutLink) {
+    checkoutLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      var ids = items.filter(function (item) {
+        return item.available && item.checkbox && item.checkbox.checked;
+      }).map(function (item) {
+        return item.id;
+      });
+      if (ids.length === 0) {
+        toast('请先选择要结算的商品');
+        return;
+      }
+      window.location.href = '/order/checkout?cartIds=' + ids.join(',');
+    });
+  }
 })();

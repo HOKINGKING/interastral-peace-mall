@@ -27,6 +27,9 @@ public final class SessionKey {
     /** 前台验证码过期时间（毫秒时间戳） */
     public static final String CAPTCHA_EXPIRE_AT = "CAPTCHA_EXPIRE_AT";
 
+    /** 下单防重复提交 Token（PRD §5.11：进入确认页生成，提交时取出即删） */
+    public static final String SUBMIT_TOKEN = "SUBMIT_TOKEN";
+
     /** 后台验证码字符，独立 key，避免同浏览器前后台互相覆盖 */
     public static final String ADMIN_CAPTCHA_CODE = "ADMIN_CAPTCHA_CODE";
 

@@ -1,6 +1,9 @@
 package com.ipc.mall.service;
 
+import com.ipc.mall.vo.CartItemVO;
 import com.ipc.mall.vo.CartVO;
+
+import java.util.List;
 
 /**
  * 购物车（PRD §5.9 / docs/api.md F15–F18）。
@@ -26,6 +29,12 @@ public interface CartService {
 
     /** 购物车页数据（F15） */
     CartVO list(Long accountId);
+
+    /**
+     * 结算用：按 cartIds 取当前账号购物车里的行（顺序不作保证，调用方自行校验）。
+     * 只返回确实属于该账号的行，别人的 id 直接忽略。
+     */
+    List<CartItemVO> listByIds(Long accountId, List<Long> cartIds);
 
     /** 商品总件数，用于顶部角标；未登录不调用 */
     int count(Long accountId);

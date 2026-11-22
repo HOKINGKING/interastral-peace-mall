@@ -87,10 +87,9 @@
                     <div class="row">
                         <span class="small muted">合计（不含运费）</span>
                         <span class="total-amount" data-total>¥0.00</span>
-                        <!-- 勾选是纯前端状态，结算时把 cartIds 传给 /order/checkout（F24） -->
+                        <!-- 勾选是纯前端状态：点击时由 cart.js 把勾选行拼成 ?cartIds=1,2 再跳转 -->
                         <a class="btn btn-primary" style="height:42px;padding:0 26px"
-                           th:href="@{/order/checkout}"
-                           data-pending="订单模块将在下一里程碑（M5）接入">去结算</a>
+                           th:href="@{/order/checkout}" data-checkout>去结算</a>
                     </div>
                 </div>
                 <p class="small muted mt-8">运费本期固定 ¥0.00；库存变化会在结算时重新校验。</p>
