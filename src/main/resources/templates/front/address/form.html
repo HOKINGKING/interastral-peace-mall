@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('center')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <a th:href="@{/address/list}">收货地址</a>
+                <span class="sep">›</span>
+                <span th:text="${addressForm.id == null ? '新增地址' : '编辑地址'}">新增地址</span>
+            </div>
+
+            <div class="panel pad" style="max-width:640px">
+                <h2 style="font-size:17px;margin-bottom:16px"
+                    th:text="${addressForm.id == null ? '新增收货地址' : '编辑收货地址'}">新增收货地址</h2>
+
+                <!-- 保存走 fetch（static/js/address.js），失败信息由统一 Result 返回 -->
+                <form th:action="@{/address/save}" method="post" data-address-form>
+                    <input type="hidden" name="id" th:if="${addressForm.id != null}" th:value="${addressForm.id}">
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>收货人<span class="req">*</span></label>
+                            <input class="input" type="text" name="receiver" maxlength="20"
+                                   th:value="${addressForm.receiver}" placeholder="收货人姓名">
+                        </div>
+                        <div class="field">
+                            <label>手机号<span class="req">*</span></label>
+                            <input class="input" type="tel" name="phone" maxlength="11"
+                                   th:value="${addressForm.phone}" placeholder="11 位手机号">
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="field">
+                            <label>省</label>
+                            <input class="input" type="text" name="province" maxlength="20"
+                                   th:value="${addressForm.province}" placeholder="如 湖南省">
+                        </div>
+                        <div class="field">
+                            <label>市</label>
+                            <input class="input" type="text" name="city" maxlength="20"
+                                   th:value="${addressForm.city}" placeholder="如 长沙市">
+                        </div>
+                        <div class="field">
+                            <label>区</label>
+                            <input class="input" type="text" name="district" maxlength="20"
+                                   th:value="${addressForm.district}" placeholder="如 岳麓区">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>详细地址<span class="req">*</span></label>
+                        <textarea class="textarea" name="detail" maxlength="100" style="min-height:90px"
+                                  th:text="${addressForm.detail}" placeholder="街道、门牌号、单元楼层"></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label class="row" style="gap:8px;cursor:pointer">
+                            <input type="checkbox" class="checkbox" name="isDefault" value="1"
+                                   th:checked="${addressForm.isDefault == '1'}">
+                            设为默认地址
+                        </label>
+                        <div class="help" th:if="${addressForm.id == null}">第一条地址会自动成为默认地址</div>
+                    </div>
+
+                    <div class="row">
+                        <button class="btn btn-primary" type="submit">保存</button>
+                        <a class="btn" th:href="@{/address/list}">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/address.js}"></script>
+</body>
+</html>

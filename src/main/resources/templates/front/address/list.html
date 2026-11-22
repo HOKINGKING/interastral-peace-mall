@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('center')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <a th:href="@{/user/center}">个人中心</a>
+                <span class="sep">›</span>
+                <span>收货地址</span>
+            </div>
+
+            <div class="panel pad mb-16 flash-panel" th:if="${listMessage != null}" th:text="${listMessage}">
+                提示
+            </div>
+
+            <div class="page-title">
+                <div>
+                    <h1>收货地址</h1>
+                    <p th:text="|已保存 ${#lists.size(addresses)} / ${limit} 条，下单时可选择默认地址|">已保存 0 / 20 条</p>
+                </div>
+                <a class="btn btn-primary" th:if="${#lists.size(addresses) < limit}" th:href="@{/address/form}">+ 新增地址</a>
+                <span class="btn is-disabled" th:unless="${#lists.size(addresses) < limit}"
+                      title="收货地址最多保存 20 条">已达上限</span>
+            </div>
+
+            <div class="panel empty" th:if="${#lists.isEmpty(addresses)}">
+                <div class="icon">📍</div>
+                <div>还没有收货地址</div>
+                <div class="small muted mt-8">添加一条地址，下单时就不用反复填写了</div>
+                <a class="btn btn-sm btn-primary mt-16" th:href="@{/address/form}">添加收货地址</a>
+            </div>
+
+            <div class="grid-2" th:unless="${#lists.isEmpty(addresses)}">
+                <div class="addr-card" th:each="addr : ${addresses}"
+                     th:classappend="${addr.defaultFlag} ? 'active' : ''"
+                     th:attr="data-address-id=${addr.id}">
+                    <div class="between">
+                        <div class="who" th:text="|${addr.receiver} · ${addr.phoneMasked}|">星野 · 138****0001</div>
+                        <span class="badge badge-paid" th:if="${addr.defaultFlag}">默认</span>
+                    </div>
+                    <div class="small muted mt-8" th:text="${addr.fullAddress}">湖南省 长沙市 岳麓区 星轨大道</div>
+                    <div class="row mt-16 wrap" style="gap:8px">
+                        <a class="btn btn-sm" th:href="@{/address/form/{id}(id=${addr.id})}">编辑</a>
+                        <button type="button" class="btn btn-sm" data-set-default
+                                th:disabled="${addr.defaultFlag}">设为默认</button>
+                        <button type="button" class="btn btn-sm btn-danger" data-remove>删除</button>
+                    </div>
+                </div>
+            </div>
+
+            <p class="help mt-16">
+                删除默认地址后不会自动补选，需要时请手动「设为默认」；单账号最多保存 20 条地址。
+            </p>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/address.js}"></script>
+</body>
+</html>
