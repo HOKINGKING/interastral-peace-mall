@@ -1,6 +1,8 @@
 package com.ipc.mall.order;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.constant.ProductStatus;
 import com.ipc.mall.common.exception.BizException;
@@ -22,7 +24,9 @@ import com.ipc.mall.service.impl.OrderServiceImpl;
 import com.ipc.mall.vo.AddressVO;
 import com.ipc.mall.vo.CartItemVO;
 import com.ipc.mall.vo.CheckoutVO;
+import com.ipc.mall.vo.OrderDetailVO;
 import com.ipc.mall.vo.OrderItemVO;
+import com.ipc.mall.vo.OrderSummaryVO;
 import org.junit.jupiter.api.BeforeEach;import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -432,6 +436,137 @@ class OrderServiceImplTest {
         BizException exception = assertThrows(BizException.class, () -> orderService.receive(2L, 5L));
         assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
         verify(orderMapper, never()).markCompleted(any(), any(), any(), any());
+    }
+
+    // ------------------------------------------------------------ 订单列表 / 详情 / 删除
+
+    @Test
+    void 列表按状态筛选并组装卡片() {
+        Order pending = order(1L, 1L, OrderStatus.PENDING_PAYMENT);
+        pending.setTotalAmount(new BigDecimal("148.00"));
+        Order shipped = order(4L, 1L, OrderStatus.SHIPPED);
+        shipped.setCourierCompany("星际速运");
+        shipped.setTrackingNo("IPC202611170002");
+
+        Page<Order> raw = new Page<>(1, 6, 2);
+        raw.setRecords(List.of(pending, shipped));
+        when(orderMapper.selectPage(any(), any())).thenReturn(raw);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
+                line(1L, 1L, 1L, 1), line(1L, 3L, 2L, 1),
+                line(4L, 5L, 3L, 1)));
+
+        IPage<OrderSummaryVO> page = orderService.pageOrders(1L, "PENDING_PAYMENT", 1, 6);
+
+        assertEquals(2, page.getRecords().size());
+        assertEquals(2, page.getTotal());
+        OrderSummaryVO first = page.getRecords().get(0);
+        assertEquals("20261117201501", first.getOrderNo());
+        assertEquals("待支付", first.getStatusDesc());
+        assertEquals("badge-pending", first.getStatusClass());
+        assertEquals(2, first.getTotalQuantity());
+        assertEquals("测试商品", first.getFirstProductName());
+        assertTrue(first.isCanPay());
+        assertTrue(first.isCanCancel());
+        assertFalse(first.isCanReceive());
+        assertFalse(first.isCanDelete());
+
+        OrderSummaryVO second = page.getRecords().get(1);
+        assertEquals("badge-shipped", second.getStatusClass());
+        assertTrue(second.isCanReceive());
+        assertTrue(second.isCanComplaint());
+        assertEquals("IPC202611170002", second.getTrackingNo());
+    }
+
+    @Test
+    void 详情组装时间线金额与收货快照() {
+        Order completed = order(2L, 1L, OrderStatus.COMPLETED);
+        completed.setReceiverName("星野");
+        completed.setReceiverPhone("13800000001");
+        completed.setReceiverProvince("湖南省");
+        completed.setReceiverCity("长沙市");
+        completed.setReceiverDistrict("岳麓区");
+        completed.setReceiverDetail("星轨大道 88 号");
+        completed.setRemark("放前台");
+        completed.setFreightAmount(new BigDecimal("0.00"));
+        completed.setTotalAmount(new BigDecimal("129.00"));
+        completed.setCreateTime(LocalDateTime.now().minusDays(2));
+        completed.setPayTime(LocalDateTime.now().minusDays(2).plusMinutes(1));
+        completed.setShipTime(LocalDateTime.now().minusDays(1));
+        completed.setFinishTime(LocalDateTime.now());
+        completed.setCourierCompany("星际速运");
+        completed.setTrackingNo("IPC202611160001");
+
+        when(orderMapper.selectById(2L)).thenReturn(completed);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
+                line(2L, 7L, 5L, 1)));
+
+        OrderDetailVO detail = orderService.detail(1L, 2L);
+
+        assertEquals("已完成", detail.getStatusDesc());
+        assertEquals("badge-completed", detail.getStatusClass());
+        assertEquals("138****0001", detail.getReceiverPhoneMasked());
+        assertEquals("湖南省 长沙市 岳麓区 星轨大道 88 号", detail.getReceiverAddress());
+        assertEquals("放前台", detail.getRemark());
+        assertEquals(1, detail.getItems().size());
+        assertEquals("39.00", detail.getGoodsAmountText());
+        assertEquals("129.00", detail.getTotalAmountText());
+        assertTrue(detail.isCanDelete());
+        assertFalse(detail.isCanPay());
+        // 下单 / 支付 / 发货 / 完成 四个节点都已完成
+        assertEquals(4, detail.getTimeline().size());
+        assertTrue(detail.getTimeline().stream().allMatch(OrderDetailVO.TimelineNode::isDone));
+        assertTrue(detail.getTimeline().get(2).getLabel().contains("星际速运"));
+    }
+
+    @Test
+    void 取消订单的时间线只有两条() {
+        Order cancelled = order(3L, 1L, OrderStatus.CANCELLED);
+        cancelled.setCreateTime(LocalDateTime.now().minusDays(2));
+        cancelled.setCancelTime(LocalDateTime.now().minusDays(1));
+        when(orderMapper.selectById(3L)).thenReturn(cancelled);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of());
+
+        OrderDetailVO detail = orderService.detail(1L, 3L);
+
+        assertEquals(2, detail.getTimeline().size());
+        assertEquals("订单已取消，库存已回补", detail.getTimeline().get(1).getLabel());
+        assertTrue(detail.isCanDelete());
+    }
+
+    @Test
+    void 看别人的订单详情返回三千零三() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 2L, OrderStatus.PAID));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.detail(1L, 1L));
+        assertEquals(ResultCode.ORDER_NOT_OWNED.getCode(), exception.getCode());
+    }
+
+    @Test
+    void 终态订单可以删除且不回补库存() {
+        when(orderMapper.selectById(2L)).thenReturn(order(2L, 1L, OrderStatus.COMPLETED));
+
+        orderService.remove(1L, 2L);
+
+        verify(orderMapper).deleteById(2L);
+        verify(itemMapper, never()).restoreStock(any(), any());
+    }
+
+    @Test
+    void 非终态订单删除返回三千零二() {
+        when(orderMapper.selectById(8L)).thenReturn(order(8L, 1L, OrderStatus.PENDING_PAYMENT));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.remove(1L, 8L));
+        assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
+        verify(orderMapper, never()).deleteById(any(Long.class));
+    }
+
+    @Test
+    void 删除别人的订单返回三千零三() {
+        when(orderMapper.selectById(8L)).thenReturn(order(8L, 2L, OrderStatus.COMPLETED));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.remove(1L, 8L));
+        assertEquals(ResultCode.ORDER_NOT_OWNED.getCode(), exception.getCode());
+        verify(orderMapper, never()).deleteById(any(Long.class));
     }
 
     // ------------------------------------------------------------ 夹具

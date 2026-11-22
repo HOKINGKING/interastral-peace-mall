@@ -1,25 +1,37 @@
 package com.ipc.mall.controller.front;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
+import com.ipc.mall.common.result.Result;
+import com.ipc.mall.common.result.ResultCode;
+import com.ipc.mall.common.util.PageUtils;
 import com.ipc.mall.dto.OrderSubmitForm;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.service.OrderService;
 import com.ipc.mall.vo.CheckoutVO;
 import com.ipc.mall.vo.LoginAccount;
+import com.ipc.mall.vo.OrderSummaryVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,6 +45,9 @@ public class OrderController {
 
     /** 支付倒计时窗口：30 分钟（超时关单是 P1，本期只展示倒计时） */
     private static final long PAY_TIMEOUT_SECONDS = 30 * 60L;
+
+    /** 订单列表每页条数 */
+    private static final int PAGE_SIZE = 6;
 
     private final OrderService orderService;
 
@@ -154,6 +169,82 @@ public class OrderController {
         return "redirect:/order/" + id;
     }
 
+    // ------------------------------------------------------------------ F29 订单列表
+
+    @GetMapping("/order/list")
+    public String list(@RequestParam(required = false) String status,
+                       @RequestParam(required = false, defaultValue = "1") Integer page,
+                       HttpSession session,
+                       Model model) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        String current = normalizeStatus(status);
+        IPage<OrderSummaryVO> orders = orderService.pageOrders(login.getAccountId(), current, page, PAGE_SIZE);
+
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("status", current);
+        model.addAttribute("pageTitle", "我的订单");
+        model.addAttribute("orders", orders.getRecords());
+        model.addAttribute("total", orders.getTotal());
+        model.addAttribute("currentStatus", current);
+        model.addAttribute("tabs", tabs(current));
+        model.addAttribute("pagination", PageUtils.pagination(orders, "/order/list", params));
+        return "front/order/list";
+    }
+
+    // ------------------------------------------------------------------ F30 订单详情
+
+    @GetMapping("/order/{id}")
+    public String detail(@PathVariable Long id,
+                         HttpSession session,
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        try {
+            model.addAttribute("pageTitle", "订单详情");
+            model.addAttribute("order", orderService.detail(login.getAccountId(), id));
+            return "front/order/detail";
+        } catch (BizException e) {
+            redirectAttributes.addFlashAttribute("listMessage", e.getMessage());
+            return "redirect:/order/list";
+        }
+    }
+
+    // ------------------------------------------------------------------ F31 确认收货
+
+    @PostMapping("/order/{id}/receive")
+    public String receive(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        try {
+            orderService.receive(login.getAccountId(), id);
+            redirectAttributes.addFlashAttribute("listMessage", "已确认收货，交易完成");
+        } catch (BizException e) {
+            redirectAttributes.addFlashAttribute("listMessage", e.getMessage());
+        }
+        return "redirect:/order/" + id;
+    }
+
+    // ------------------------------------------------------------------ F37 删除订单
+
+    @DeleteMapping("/order/{id}")
+    @ResponseBody
+    public Result<Void> remove(@PathVariable Long id, HttpSession session) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return Result.fail(ResultCode.UNAUTHORIZED);
+        }
+        orderService.remove(login.getAccountId(), id);
+        return Result.ok("订单已删除", (Void) null);
+    }
+
     // ------------------------------------------------------------------ 内部方法
 
     /** 取出即删：无论成功失败都失效，防止一次 Token 反复提交 */
@@ -167,6 +258,38 @@ public class OrderController {
         if (value != null && (!(value instanceof String text) || StringUtils.hasText(text))) {
             redirectAttributes.addAttribute(key, value);
         }
+    }
+
+    /** 状态 Tab：code=null 表示「全部」 */
+    private List<Map<String, Object>> tabs(String current) {
+        List<Map<String, Object>> tabs = new ArrayList<>();
+        tabs.add(tab(null, "全部", current == null));
+        for (OrderStatus status : OrderStatus.values()) {
+            tabs.add(tab(status.name(), status.getDesc(), status.name().equals(current)));
+        }
+        return tabs;
+    }
+
+    private Map<String, Object> tab(String code, String label, boolean active) {
+        Map<String, Object> tab = new LinkedHashMap<>();
+        tab.put("code", code);
+        tab.put("label", label);
+        tab.put("active", active);
+        tab.put("url", code == null ? "/order/list" : "/order/list?status=" + code);
+        return tab;
+    }
+
+    /** 状态筛选：只接受合法枚举名，空/非法按「全部」 */
+    private String normalizeStatus(String status) {
+        if (!StringUtils.hasText(status)) {
+            return null;
+        }
+        for (OrderStatus candidate : OrderStatus.values()) {
+            if (candidate.name().equals(status.trim())) {
+                return candidate.name();
+            }
+        }
+        return null;
     }
 
     /** 支付倒计时：下单后 30 分钟（PRD §5.14 超时关单窗口） */

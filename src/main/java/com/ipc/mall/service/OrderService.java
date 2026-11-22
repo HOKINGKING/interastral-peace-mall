@@ -1,8 +1,11 @@
 package com.ipc.mall.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ipc.mall.dto.OrderSubmitForm;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.vo.CheckoutVO;
+import com.ipc.mall.vo.OrderDetailVO;
+import com.ipc.mall.vo.OrderSummaryVO;
 
 /**
  * 交易链路：结算下单 / 模拟支付 / 订单管理（PRD §5.11–§5.14、§8 / docs/api.md F24–F31、F37）。
@@ -36,4 +39,17 @@ public interface OrderService {
 
     /** 确认收货（T6）：SHIPPED → COMPLETED + finish_time；其它状态 3002 */
     void receive(Long accountId, Long orderId);
+
+    /**
+     * 订单列表（F29）：按状态 Tab 筛选 + 分页，按下单时间倒序。
+     *
+     * @param status 为空表示「全部」，非法值忽略（按全部处理）
+     */
+    IPage<OrderSummaryVO> pageOrders(Long accountId, String status, int pageNo, int size);
+
+    /** 订单详情（F30）：不存在 3001，非本人 3003 */
+    OrderDetailVO detail(Long accountId, Long orderId);
+
+    /** 删除订单（F37）：只有终态可删，逻辑删除且不回补库存；非终态 3002 */
+    void remove(Long accountId, Long orderId);
 }

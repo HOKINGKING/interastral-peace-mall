@@ -1,5 +1,6 @@
 package com.ipc.mall.order;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
@@ -10,7 +11,9 @@ import com.ipc.mall.dto.OrderSubmitForm;
 import com.ipc.mall.service.OrderService;
 import com.ipc.mall.vo.CheckoutVO;
 import com.ipc.mall.vo.LoginAccount;
+import com.ipc.mall.vo.OrderDetailVO;
 import com.ipc.mall.vo.OrderItemVO;
+import com.ipc.mall.vo.OrderSummaryVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
@@ -31,9 +34,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
@@ -257,7 +262,134 @@ class OrderControllerTest {
                 .andExpect(flash().attribute("listMessage", ResultCode.ORDER_STATUS_INVALID.getMessage()));
     }
 
+    // ------------------------------------------------------------ F29 订单列表
+
+    @Test
+    void 未登录访问订单列表跳登录() throws Exception {
+        mockMvc.perform(get("/order/list"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void 订单列表渲染Tab与分页() throws Exception {
+        Page<OrderSummaryVO> page = new Page<>(1, 6, 2);
+        page.setRecords(List.of(summary(1L, "PENDING_PAYMENT", "待支付"), summary(2L, "COMPLETED", "已完成")));
+        when(orderService.pageOrders(1L, null, 1, 6)).thenReturn(page);
+
+        mockMvc.perform(get("/order/list").session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("front/order/list"))
+                .andExpect(model().attribute("pageTitle", "我的订单"))
+                .andExpect(model().attribute("total", 2L))
+                .andExpect(model().attributeExists("orders"))
+                .andExpect(model().attributeExists("tabs"))
+                .andExpect(model().attributeExists("pagination"));
+    }
+
+    @Test
+    void 订单列表按状态筛选() throws Exception {
+        Page<OrderSummaryVO> page = new Page<>(1, 6, 1);
+        page.setRecords(List.of(summary(5L, "PAID", "已支付")));
+        when(orderService.pageOrders(1L, "PAID", 1, 6)).thenReturn(page);
+
+        mockMvc.perform(get("/order/list").param("status", "PAID").session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("currentStatus", "PAID"));
+
+        verify(orderService).pageOrders(1L, "PAID", 1, 6);
+    }
+
+    // ------------------------------------------------------------ F30 订单详情
+
+    @Test
+    void 订单详情渲染() throws Exception {
+        OrderDetailVO detail = new OrderDetailVO();
+        detail.setId(2L);
+        detail.setOrderNo("20261116102133");
+        detail.setStatusDesc("已完成");
+        detail.setStatusClass("badge-completed");
+        when(orderService.detail(1L, 2L)).thenReturn(detail);
+
+        mockMvc.perform(get("/order/2").session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("front/order/detail"))
+                .andExpect(model().attribute("pageTitle", "订单详情"))
+                .andExpect(model().attribute("order", detail));
+    }
+
+    @Test
+    void 看别人的订单详情跳列表并提示() throws Exception {
+        when(orderService.detail(1L, 2L)).thenThrow(new BizException(ResultCode.ORDER_NOT_OWNED));
+
+        mockMvc.perform(get("/order/2").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/list"))
+                .andExpect(flash().attribute("listMessage", ResultCode.ORDER_NOT_OWNED.getMessage()));
+    }
+
+    // ------------------------------------------------------------ F31 确认收货
+
+    @Test
+    void 确认收货成功跳详情() throws Exception {
+        mockMvc.perform(post("/order/4/receive").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/4"))
+                .andExpect(flash().attributeExists("listMessage"));
+
+        verify(orderService).receive(1L, 4L);
+    }
+
+    @Test
+    void 确认收货状态不允许时回详情提示() throws Exception {
+        doThrow(new BizException(ResultCode.ORDER_STATUS_INVALID)).when(orderService).receive(1L, 5L);
+
+        mockMvc.perform(post("/order/5/receive").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/5"))
+                .andExpect(flash().attribute("listMessage", ResultCode.ORDER_STATUS_INVALID.getMessage()));
+    }
+
+    // ------------------------------------------------------------ F37 删除订单
+
+    @Test
+    void 删除终态订单返回成功() throws Exception {
+        mockMvc.perform(delete("/order/2").session(loginSession()))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("订单已删除"));
+
+        verify(orderService).remove(1L, 2L);
+    }
+
+    @Test
+    void 删除非终态订单返回三千零二() throws Exception {
+        doThrow(new BizException(ResultCode.ORDER_STATUS_INVALID)).when(orderService).remove(1L, 8L);
+
+        mockMvc.perform(delete("/order/8").session(loginSession()))
+                .andExpect(jsonPath("$.code").value(3002))
+                .andExpect(jsonPath("$.message").value(ResultCode.ORDER_STATUS_INVALID.getMessage()));
+    }
+
+    @Test
+    void 未登录删除订单返回四百零一() throws Exception {
+        mockMvc.perform(delete("/order/2"))
+                .andExpect(jsonPath("$.code").value(ResultCode.UNAUTHORIZED.getCode()));
+
+        verify(orderService, never()).remove(any(), any());
+    }
+
     // ------------------------------------------------------------ 夹具
+
+    private OrderSummaryVO summary(Long id, String status, String desc) {
+        OrderSummaryVO vo = new OrderSummaryVO();
+        vo.setId(id);
+        vo.setOrderNo("2026111720150" + id);
+        vo.setStatus(status);
+        vo.setStatusDesc(desc);
+        vo.setTotalQuantity(1);
+        vo.setTotalAmountText("127.00");
+        return vo;
+    }
 
     private com.ipc.mall.entity.Order order(Long id, OrderStatus status) {
         com.ipc.mall.entity.Order order = new com.ipc.mall.entity.Order();

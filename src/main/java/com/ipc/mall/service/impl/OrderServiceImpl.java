@@ -1,6 +1,8 @@
 package com.ipc.mall.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.constant.ProductStatus;
 import com.ipc.mall.common.exception.BizException;
@@ -22,7 +24,9 @@ import com.ipc.mall.service.OrderService;
 import com.ipc.mall.vo.AddressVO;
 import com.ipc.mall.vo.CartItemVO;
 import com.ipc.mall.vo.CheckoutVO;
+import com.ipc.mall.vo.OrderDetailVO;
 import com.ipc.mall.vo.OrderItemVO;
+import com.ipc.mall.vo.OrderSummaryVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -245,6 +249,54 @@ public class OrderServiceImpl implements OrderService {
         log.info("订单确认收货: orderId={} account={}", orderId, accountId);
     }
 
+    // ------------------------------------------------------------------ 订单管理（列表 / 详情 / 删除）
+
+    @Override
+    public IPage<OrderSummaryVO> pageOrders(Long accountId, String status, int pageNo, int size) {
+        Page<Order> page = new Page<>(Math.max(1, pageNo), Math.max(1, size));
+        String statusFilter = normalizeStatus(status);
+        IPage<Order> raw = orderMapper.selectPage(page, new LambdaQueryWrapper<Order>()
+                .eq(Order::getAccountId, accountId)
+                .eq(statusFilter != null, Order::getStatus, statusFilter)
+                .orderByDesc(Order::getCreateTime)
+                .orderByDesc(Order::getId));
+
+        // 一页只查一次明细，再按 orderId 分组，避免每张卡片一次查询
+        List<Long> orderIds = raw.getRecords().stream().map(Order::getId).toList();
+        Map<Long, List<OrderItem>> itemsByOrder = new HashMap<>();
+        if (!orderIds.isEmpty()) {
+            for (OrderItem item : orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
+                    .in(OrderItem::getOrderId, orderIds))) {
+                itemsByOrder.computeIfAbsent(item.getOrderId(), key -> new ArrayList<>()).add(item);
+            }
+        }
+
+        Page<OrderSummaryVO> result = new Page<>(raw.getCurrent(), raw.getSize(), raw.getTotal());
+        result.setRecords(raw.getRecords().stream()
+                .map(order -> OrderSummaryVO.of(order, itemsByOrder.getOrDefault(order.getId(), List.of())))
+                .toList());
+        return result;
+    }
+
+    @Override
+    public OrderDetailVO detail(Long accountId, Long orderId) {
+        Order order = findOwned(accountId, orderId);
+        return OrderDetailVO.of(order, itemsOf(orderId));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void remove(Long accountId, Long orderId) {
+        Order order = findOwned(accountId, orderId);
+        if (!OrderStatus.of(order.getStatus()).isFinal()) {
+            // 只有 CANCELLED / COMPLETED 可以删（PRD §8.2 T7）
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        // 逻辑删除，不回补库存（取消时已经补过，删除只是隐藏）
+        orderMapper.deleteById(orderId);
+        log.info("订单已删除: orderId={} account={}", orderId, accountId);
+    }
+
     // ------------------------------------------------------------------ 明细解析与校验
 
     /** 两个入口归一到同一份「待下单明细」，价格一律取数据库里的 item.price */
@@ -440,8 +492,22 @@ public class OrderServiceImpl implements OrderService {
         return line.product() == null ? null : line.product().getMainImage();
     }
 
-    /** "1,2,3" → [1,2,3]；非法片段直接忽略，前后台都不会因此 500 */
-    private List<Long> parseCartIds(String cartIds) {
+    /** 状态 Tab 参数：只接受合法枚举名，空/非法一律按「全部」处理 */
+    private String normalizeStatus(String status) {
+        if (!StringUtils.hasText(status)) {
+            return null;
+        }
+        String value = status.trim();
+        for (OrderStatus candidate : OrderStatus.values()) {
+            if (candidate.name().equals(value)) {
+                return value;
+            }
+        }
+        log.warn("忽略非法的订单状态筛选: {}", value);
+        return null;
+    }
+
+    /** "1,2,3" → [1,2,3]；非法片段直接忽略，前后台都不会因此 500 */    private List<Long> parseCartIds(String cartIds) {
         if (!StringUtils.hasText(cartIds)) {
             return List.of();
         }

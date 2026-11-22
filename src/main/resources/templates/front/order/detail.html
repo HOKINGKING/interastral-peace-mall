@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('order')}"></div>
+
+<main data-order-detail>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <a th:href="@{/order/list}">我的订单</a>
+                <span class="sep">›</span>
+                <span class="mono" th:text="${order.orderNo}">20261116102133</span>
+            </div>
+
+            <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+            <div class="panel pad mb-16">
+                <div class="between wrap">
+                    <div>
+                        <div class="row">
+                            <h2 style="font-size:18px" th:text="|订单 ${order.orderNo}|">订单</h2>
+                            <span class="badge" th:classappend="${order.statusClass}"
+                                  th:text="${order.statusDesc}">已完成</span>
+                        </div>
+                        <div class="small muted mt-8">
+                            下单时间 <span th:text="${order.createTimeText}">-</span>
+                        </div>
+                    </div>
+                    <div class="row wrap" style="gap:8px">
+                        <a class="btn btn-sm btn-primary" th:if="${order.canPay}"
+                           th:href="@{/order/{id}/pay(id=${order.id})}">去支付</a>
+                        <form th:if="${order.canCancel}" th:action="@{/order/{id}/cancel(id=${order.id})}"
+                              method="post" style="margin:0">
+                            <button class="btn btn-sm" type="submit"
+                                    data-confirm="取消后库存会回补，确定取消这笔订单吗？">取消订单</button>
+                        </form>
+                        <form th:if="${order.canReceive}" th:action="@{/order/{id}/receive(id=${order.id})}"
+                              method="post" style="margin:0">
+                            <button class="btn btn-sm btn-primary" type="submit"
+                                    data-confirm="请确认已收到商品，确认后交易完成。">确认收货</button>
+                        </form>
+                        <a class="btn btn-sm" th:if="${order.canComplaint}"
+                           th:href="@{/feedback/form(orderId=${order.id})}"
+                           data-pending="投诉与反馈模块将在下一里程碑（M7）接入">投诉此订单</a>
+                        <button class="btn btn-sm btn-danger" type="button" th:if="${order.canDelete}"
+                                th:attr="data-delete-order=${order.id}">删除订单</button>
+                        <a class="btn btn-sm" th:href="@{/order/list}">返回列表</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="align-items:flex-start;gap:20px">
+                <div class="content-main">
+                    <div class="panel pad">
+                        <b>状态时间线</b>
+                        <div class="timeline mt-16">
+                            <div class="item" th:each="node : ${order.timeline}"
+                                 th:classappend="${node.done} ? 'done' : ''">
+                                <div class="t" th:text="${node.label}">已提交订单</div>
+                                <div class="d" th:text="${node.timeText}">2026-11-16 10:21</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel mt-16">
+                        <div class="pad-sm" style="border-bottom:1px solid var(--line)"><b>商品明细</b></div>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>商品</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th class="right">小计</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${order.items}">
+                                <td>
+                                    <div class="row">
+                                        <span class="ph" style="width:44px;height:44px;font-size:16px;flex:0 0 44px"
+                                              th:if="${item.image == null}"
+                                              th:text="${#strings.substring(item.productName, 0, 1)}">星</span>
+                                        <img th:if="${item.image != null}" th:src="${item.image}"
+                                             th:alt="${item.productName}"
+                                             style="width:44px;height:44px;border-radius:8px;object-fit:cover">
+                                        <div>
+                                            <span th:text="${item.productName}">商品名</span>
+                                            <div class="small muted" th:if="${item.spec != null}"
+                                                 th:text="${item.spec}">规格</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="|¥${item.priceText}|">¥0.00</td>
+                                <td th:text="${item.quantity}">1</td>
+                                <td class="right" th:text="|¥${item.subtotalText}|">¥0.00</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel pad mt-16" th:if="${order.remark != null}">
+                        <b>订单备注</b>
+                        <div class="small muted mt-8" th:text="${order.remark}">备注</div>
+                    </div>
+                </div>
+
+                <aside style="width:320px;flex:0 0 320px">
+                    <div class="panel pad">
+                        <b>收货信息</b>
+                        <div class="divider"></div>
+                        <div style="font-weight:600" th:text="|${order.receiverName} · ${order.receiverPhoneMasked}|">星野</div>
+                        <div class="small muted mt-8" th:text="${order.receiverAddress}">地址</div>
+                    </div>
+
+                    <div class="panel pad mt-16">
+                        <b>金额</b>
+                        <div class="divider"></div>
+                        <div class="between small">
+                            <span class="muted">商品总额</span>
+                            <span th:text="|¥${order.goodsAmountText}|">¥0.00</span>
+                        </div>
+                        <div class="between small mt-8">
+                            <span class="muted">运费</span>
+                            <span th:text="|¥${order.freightAmountText}|">¥0.00</span>
+                        </div>
+                        <div class="between mt-8">
+                            <span>实付</span>
+                            <span class="total-amount" th:text="|¥${order.totalAmountText}|">¥0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="panel pad mt-16" th:if="${order.trackingNo != null}">
+                        <b>物流信息</b>
+                        <div class="divider"></div>
+                        <div class="small" th:text="${order.courierCompany}">星际速运</div>
+                        <div class="small mono mt-8" th:text="${order.trackingNo}">IPC202611160001</div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/order.js}"></script>
+</body>
+</html>

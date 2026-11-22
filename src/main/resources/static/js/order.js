@@ -108,7 +108,7 @@
             card.parentNode.removeChild(card);
           }
           setTimeout(function () {
-            window.location.reload();
+            window.location.href = '/order/list';
           }, 500);
           return;
         }
