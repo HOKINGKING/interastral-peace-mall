@@ -3,6 +3,7 @@ package com.ipc.mall.controller.front;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.dto.OrderSubmitForm;
+import com.ipc.mall.entity.Order;
 import com.ipc.mall.service.OrderService;
 import com.ipc.mall.vo.CheckoutVO;
 import com.ipc.mall.vo.LoginAccount;
@@ -12,10 +13,13 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -26,6 +30,9 @@ import java.util.UUID;
  */
 @Controller
 public class OrderController {
+
+    /** 支付倒计时窗口：30 分钟（超时关单是 P1，本期只展示倒计时） */
+    private static final long PAY_TIMEOUT_SECONDS = 30 * 60L;
 
     private final OrderService orderService;
 
@@ -86,6 +93,67 @@ public class OrderController {
         }
     }
 
+    // ------------------------------------------------------------------ F26 支付页
+
+    @GetMapping("/order/{id}/pay")
+    public String payPage(@PathVariable Long id,
+                          HttpSession session,
+                          Model model,
+                          RedirectAttributes redirectAttributes) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        try {
+            Order order = orderService.get(login.getAccountId(), id);
+            if (!order.isPendingPayment()) {
+                redirectAttributes.addFlashAttribute("listMessage", "该订单已不在待支付状态，无需再次支付");
+                return "redirect:/order/list";
+            }
+            model.addAttribute("pageTitle", "订单支付");
+            model.addAttribute("order", order);
+            model.addAttribute("remainSeconds", remainSeconds(order));
+            return "front/order/pay";
+        } catch (BizException e) {
+            redirectAttributes.addFlashAttribute("listMessage", e.getMessage());
+            return "redirect:/order/list";
+        }
+    }
+
+    // ------------------------------------------------------------------ F27 模拟支付
+
+    @PostMapping("/order/{id}/pay")
+    public String pay(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        try {
+            orderService.pay(login.getAccountId(), id);
+            redirectAttributes.addFlashAttribute("listMessage", "支付成功，感谢购买");
+        } catch (BizException e) {
+            redirectAttributes.addFlashAttribute("listMessage", e.getMessage());
+        }
+        return "redirect:/order/" + id;
+    }
+
+    // ------------------------------------------------------------------ F28 取消订单
+
+    @PostMapping("/order/{id}/cancel")
+    public String cancel(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        LoginAccount login = currentAccount(session);
+        if (login == null) {
+            return "redirect:/login";
+        }
+        try {
+            orderService.cancel(login.getAccountId(), id);
+            redirectAttributes.addFlashAttribute("listMessage", "订单已取消，库存已回补");
+        } catch (BizException e) {
+            redirectAttributes.addFlashAttribute("listMessage", e.getMessage());
+        }
+        return "redirect:/order/" + id;
+    }
+
     // ------------------------------------------------------------------ 内部方法
 
     /** 取出即删：无论成功失败都失效，防止一次 Token 反复提交 */
@@ -99,6 +167,15 @@ public class OrderController {
         if (value != null && (!(value instanceof String text) || StringUtils.hasText(text))) {
             redirectAttributes.addAttribute(key, value);
         }
+    }
+
+    /** 支付倒计时：下单后 30 分钟（PRD §5.14 超时关单窗口） */
+    private long remainSeconds(Order order) {
+        if (order.getCreateTime() == null) {
+            return 0;
+        }
+        long elapsed = Duration.between(order.getCreateTime(), LocalDateTime.now()).getSeconds();
+        return Math.max(0, PAY_TIMEOUT_SECONDS - elapsed);
     }
 
     private LoginAccount currentAccount(HttpSession session) {

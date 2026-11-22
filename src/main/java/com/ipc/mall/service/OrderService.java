@@ -1,6 +1,7 @@
 package com.ipc.mall.service;
 
 import com.ipc.mall.dto.OrderSubmitForm;
+import com.ipc.mall.entity.Order;
 import com.ipc.mall.vo.CheckoutVO;
 
 /**
@@ -23,4 +24,16 @@ public interface OrderService {
      * @return 新订单 id
      */
     Long submit(Long accountId, OrderSubmitForm form);
+
+    /** 支付页 / 状态校验用：订单不存在 3001，非本人 3003 */
+    Order get(Long accountId, Long orderId);
+
+    /** 模拟支付（T2）：PENDING_PAYMENT → PAID + pay_time + 累加销量；已 PAID 幂等直接返回 */
+    void pay(Long accountId, Long orderId);
+
+    /** 取消（T3）：PENDING_PAYMENT → CANCELLED + cancel_time + 回补库存；其它状态 3002 */
+    void cancel(Long accountId, Long orderId);
+
+    /** 确认收货（T6）：SHIPPED → COMPLETED + finish_time；其它状态 3002 */
+    void receive(Long accountId, Long orderId);
 }

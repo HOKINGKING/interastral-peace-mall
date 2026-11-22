@@ -178,6 +178,73 @@ public class OrderServiceImpl implements OrderService {
         return order.getId();
     }
 
+    // ------------------------------------------------------------------ 支付 / 取消 / 收货
+
+    @Override
+    public Order get(Long accountId, Long orderId) {
+        return findOwned(accountId, orderId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void pay(Long accountId, Long orderId) {
+        Order order = findOwned(accountId, orderId);
+        // 幂等：重复点支付（已是 PAID）直接当成功，不重写 pay_time、不重复加销量
+        if (OrderStatus.PAID.name().equals(order.getStatus())) {
+            return;
+        }
+        if (!OrderStatus.of(order.getStatus()).canTransitTo(OrderStatus.PAID)) {
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        int rows = orderMapper.markPaid(orderId, accountId, now, now);
+        if (rows == 0) {
+            // 并发：可能另一请求刚支付成功 → 仍然按幂等处理
+            Order latest = orderMapper.selectById(orderId);
+            if (latest != null && OrderStatus.PAID.name().equals(latest.getStatus())) {
+                return;
+            }
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        // 销量只在状态确实流转成功时累加，且按 product_id 分组（PRD §7.6）
+        increaseSales(orderId);
+        log.info("订单支付成功: orderId={} account={}", orderId, accountId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancel(Long accountId, Long orderId) {
+        Order order = findOwned(accountId, orderId);
+        if (!OrderStatus.of(order.getStatus()).canTransitTo(OrderStatus.CANCELLED)) {
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        // 只有条件更新成功（rows == 1）才回补库存，避免与超时关单并发时重复补货
+        int rows = orderMapper.markCancelled(orderId, accountId, now, now);
+        if (rows == 0) {
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        for (OrderItem item : itemsOf(orderId)) {
+            itemMapper.restoreStock(item.getItemId(), item.getQuantity());
+        }
+        log.info("订单已取消并回补库存: orderId={} account={}", orderId, accountId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void receive(Long accountId, Long orderId) {
+        Order order = findOwned(accountId, orderId);
+        if (!OrderStatus.of(order.getStatus()).canTransitTo(OrderStatus.COMPLETED)) {
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        int rows = orderMapper.markCompleted(orderId, accountId, now, now);
+        if (rows == 0) {
+            throw new BizException(ResultCode.ORDER_STATUS_INVALID);
+        }
+        log.info("订单确认收货: orderId={} account={}", orderId, accountId);
+    }
+
     // ------------------------------------------------------------------ 明细解析与校验
 
     /** 两个入口归一到同一份「待下单明细」，价格一律取数据库里的 item.price */
@@ -259,6 +326,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // ------------------------------------------------------------------ 落库辅助
+
+    /** 订单归属校验：不存在 3001，别人的订单 3003（不是 3004，3004 是地址） */
+    private Order findOwned(Long accountId, Long orderId) {
+        Order order = orderId == null ? null : orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BizException(ResultCode.ORDER_NOT_FOUND);
+        }
+        if (!Objects.equals(order.getAccountId(), accountId)) {
+            throw new BizException(ResultCode.ORDER_NOT_OWNED);
+        }
+        return order;
+    }
+
+    private List<OrderItem> itemsOf(Long orderId) {
+        return orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
+                .eq(OrderItem::getOrderId, orderId));
+    }
+
+    /** 按 product_id 分组累加销量：同一订单里同一 SPU 的多条明细合并成一次更新 */
+    private void increaseSales(Long orderId) {
+        Map<Long, Integer> quantityByProduct = new HashMap<>();
+        for (OrderItem item : itemsOf(orderId)) {
+            if (item.getProductId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
+                continue;
+            }
+            quantityByProduct.merge(item.getProductId(), item.getQuantity(), Integer::sum);
+        }
+        quantityByProduct.forEach(productMapper::increaseSales);
+    }
 
     private void insertOrder(Order order) {
         for (int attempt = 1; ; attempt++) {

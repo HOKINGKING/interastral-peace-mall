@@ -16,4 +16,11 @@ public interface ItemMapper extends BaseMapper<Item> {
     @Update("UPDATE item SET stock = stock - #{qty}, version = version + 1 "
             + "WHERE id = #{id} AND stock >= #{qty} AND version = #{version}")
     int deductStock(@Param("id") Long id, @Param("qty") Integer qty, @Param("version") Integer version);
+
+    /**
+     * 取消订单回补库存（T3）：配合「状态条件更新成功」使用，保证只回补一次。
+     * 这里不带 version 条件：回补是加库存，不存在超卖问题。
+     */
+    @Update("UPDATE item SET stock = stock + #{qty}, version = version + 1 WHERE id = #{id}")
+    int restoreStock(@Param("id") Long id, @Param("qty") Integer qty);
 }

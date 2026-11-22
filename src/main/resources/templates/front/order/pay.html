@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('order')}"></div>
+
+<main>
+    <section class="page">
+        <div class="container">
+            <div class="breadcrumb">
+                <a th:href="@{/}">首页</a>
+                <span class="sep">›</span>
+                <a th:href="@{/order/list}">我的订单</a>
+                <span class="sep">›</span>
+                <span>订单支付</span>
+            </div>
+
+            <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+            <div class="panel pay-box">
+                <div style="font-size:40px">💳</div>
+                <h2 style="margin-top:8px">等待支付</h2>
+                <p class="muted small mt-8">
+                    订单号 <span class="mono" th:text="${order.orderNo}">20261118093012</span>
+                </p>
+                <div class="pay-amount mt-16"
+                     th:text="|¥${#numbers.formatDecimal(order.totalAmount, 1, 2)}|">¥0.00</div>
+                <p class="small muted mt-8">
+                    请在 <b class="mono" data-countdown th:attr="data-countdown=${remainSeconds}">30:00</b>
+                    内完成支付，超时订单会自动取消并释放库存
+                </p>
+
+                <div class="row center mt-24" style="justify-content:center">
+                    <form th:action="@{/order/{id}/pay(id=${order.id})}" method="post">
+                        <button class="btn btn-primary" type="submit" style="height:44px;padding:0 32px">
+                            模拟支付成功
+                        </button>
+                    </form>
+                    <form th:action="@{/order/{id}/cancel(id=${order.id})}" method="post">
+                        <button class="btn" type="submit" style="height:44px;padding:0 32px"
+                                data-confirm="取消后库存会回补，确定取消这笔订单吗？">取消支付</button>
+                    </form>
+                </div>
+
+                <div class="row mt-24" style="justify-content:center;gap:16px">
+                    <a class="small muted" th:href="@{/order/{id}(id=${order.id})}">查看订单详情</a>
+                    <a class="small muted" th:href="@{/order/list}">稍后支付</a>
+                </div>
+
+                <p class="small muted mt-24" style="border-top:1px dashed var(--line);padding-top:14px">
+                    本页为模拟支付，不接入真实第三方通道，不会产生任何扣款。
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+<script th:src="@{/js/order.js}"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.ipc.mall.order;
 
+import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.common.exception.GlobalExceptionHandler;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -170,7 +172,104 @@ class OrderControllerTest {
                 .andExpect(redirectedUrl("/login"));
     }
 
+    // ------------------------------------------------------------ F26 支付页
+
+    @Test
+    void 待支付订单可以进入支付页() throws Exception {
+        when(orderService.get(1L, 8L)).thenReturn(order(8L, OrderStatus.PENDING_PAYMENT));
+
+        mockMvc.perform(get("/order/8/pay").session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("front/order/pay"))
+                .andExpect(model().attribute("pageTitle", "订单支付"))
+                .andExpect(model().attributeExists("order"))
+                .andExpect(model().attributeExists("remainSeconds"));
+    }
+
+    @Test
+    void 非待支付订单进支付页跳列表() throws Exception {
+        when(orderService.get(1L, 8L)).thenReturn(order(8L, OrderStatus.PAID));
+
+        mockMvc.perform(get("/order/8/pay").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/list"))
+                .andExpect(flash().attributeExists("listMessage"));
+    }
+
+    @Test
+    void 看别人的支付页跳列表并提示() throws Exception {
+        when(orderService.get(1L, 8L)).thenThrow(new BizException(ResultCode.ORDER_NOT_OWNED));
+
+        mockMvc.perform(get("/order/8/pay").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/list"))
+                .andExpect(flash().attribute("listMessage", ResultCode.ORDER_NOT_OWNED.getMessage()));
+    }
+
+    // ------------------------------------------------------------ F27 支付
+
+    @Test
+    void 模拟支付成功跳订单详情() throws Exception {
+        mockMvc.perform(post("/order/8/pay").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/8"))
+                .andExpect(flash().attributeExists("listMessage"));
+
+        verify(orderService).pay(1L, 8L);
+    }
+
+    @Test
+    void 支付失败回详情并带原因() throws Exception {
+        doThrow(new BizException(ResultCode.ORDER_STATUS_INVALID)).when(orderService).pay(1L, 8L);
+
+        mockMvc.perform(post("/order/8/pay").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/8"))
+                .andExpect(flash().attribute("listMessage", ResultCode.ORDER_STATUS_INVALID.getMessage()));
+    }
+
+    @Test
+    void 未登录支付跳登录() throws Exception {
+        mockMvc.perform(post("/order/8/pay"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    // ------------------------------------------------------------ F28 取消
+
+    @Test
+    void 取消订单跳订单详情() throws Exception {
+        mockMvc.perform(post("/order/8/cancel").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/8"))
+                .andExpect(flash().attributeExists("listMessage"));
+
+        verify(orderService).cancel(1L, 8L);
+    }
+
+    @Test
+    void 取消已支付订单回详情并提示状态不允许() throws Exception {
+        doThrow(new BizException(ResultCode.ORDER_STATUS_INVALID)).when(orderService).cancel(1L, 8L);
+
+        mockMvc.perform(post("/order/8/cancel").session(loginSession()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/order/8"))
+                .andExpect(flash().attribute("listMessage", ResultCode.ORDER_STATUS_INVALID.getMessage()));
+    }
+
     // ------------------------------------------------------------ 夹具
+
+    private com.ipc.mall.entity.Order order(Long id, OrderStatus status) {
+        com.ipc.mall.entity.Order order = new com.ipc.mall.entity.Order();
+        order.setId(id);
+        order.setAccountId(1L);
+        order.setOrderNo("2026111720150" + id);
+        order.setStatus(status.name());
+        order.setTotalAmount(new BigDecimal("127.00"));
+        order.setFreightAmount(BigDecimal.ZERO);
+        order.setCreateTime(LocalDateTime.now().minusMinutes(5));
+        return order;
+    }
 
     private CheckoutVO checkoutVO() {
         OrderItemVO item = new OrderItemVO();

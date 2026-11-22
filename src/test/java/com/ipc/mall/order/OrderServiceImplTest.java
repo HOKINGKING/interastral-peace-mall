@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -313,6 +314,126 @@ class OrderServiceImplTest {
         assertNull(captor.getValue().getRemark());
     }
 
+    // ------------------------------------------------------------ 支付 / 取消 / 收货
+
+    @Test
+    void 支付成功写payTime并按SPU分组累加销量() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.PENDING_PAYMENT));
+        when(orderMapper.markPaid(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(1);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
+                line(1L, 6L, 4L, 2),
+                line(1L, 8L, 6L, 1)));
+
+        orderService.pay(1L, 1L);
+
+        verify(orderMapper).markPaid(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(productMapper).increaseSales(4L, 2);
+        verify(productMapper).increaseSales(6L, 1);
+    }
+
+    @Test
+    void 重复支付幂等不重复加销量() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.PAID));
+
+        orderService.pay(1L, 1L);
+
+        verify(orderMapper, never()).markPaid(any(), any(), any(), any());
+        verify(productMapper, never()).increaseSales(any(), any());
+    }
+
+    @Test
+    void 条件更新零行但已是已支付仍按幂等处理() {
+        when(orderMapper.selectById(1L))
+                .thenReturn(order(1L, 1L, OrderStatus.PENDING_PAYMENT), order(1L, 1L, OrderStatus.PAID));
+        when(orderMapper.markPaid(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(0);
+
+        orderService.pay(1L, 1L);
+
+        verify(productMapper, never()).increaseSales(any(), any());
+    }
+
+    @Test
+    void 已取消订单支付返回三千零二() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.CANCELLED));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.pay(1L, 1L));
+        assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
+        verify(orderMapper, never()).markPaid(any(), any(), any(), any());
+    }
+
+    @Test
+    void 支付时订单不存在返回三千零一() {
+        when(orderMapper.selectById(1L)).thenReturn(null);
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.pay(1L, 1L));
+        assertEquals(ResultCode.ORDER_NOT_FOUND.getCode(), exception.getCode());
+    }
+
+    @Test
+    void 支付别人的订单返回三千零三() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 2L, OrderStatus.PENDING_PAYMENT));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.pay(1L, 1L));
+        assertEquals(ResultCode.ORDER_NOT_OWNED.getCode(), exception.getCode());
+    }
+
+    @Test
+    void 取消订单回补库存() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.PENDING_PAYMENT));
+        when(orderMapper.markCancelled(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(1);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
+                line(1L, 6L, 4L, 2),
+                line(1L, 8L, 6L, 1)));
+
+        orderService.cancel(1L, 1L);
+
+        verify(itemMapper).restoreStock(6L, 2);
+        verify(itemMapper).restoreStock(8L, 1);
+    }
+
+    @Test
+    void 已支付订单取消返回三千零二且不回补库存() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.PAID));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.cancel(1L, 1L));
+        assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
+        verify(itemMapper, never()).restoreStock(any(), any());
+    }
+
+    @Test
+    void 取消时条件更新零行不回补库存() {
+        when(orderMapper.selectById(1L)).thenReturn(order(1L, 1L, OrderStatus.PENDING_PAYMENT));
+        when(orderMapper.markCancelled(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(0);
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.cancel(1L, 1L));
+        assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
+        verify(itemMapper, never()).restoreStock(any(), any());
+    }
+
+    @Test
+    void 已发货订单确认收货成功() {
+        when(orderMapper.selectById(4L)).thenReturn(order(4L, 1L, OrderStatus.SHIPPED));
+        when(orderMapper.markCompleted(eq(4L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(1);
+
+        orderService.receive(1L, 4L);
+
+        verify(orderMapper).markCompleted(eq(4L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+
+    @Test
+    void 已支付订单确认收货返回三千零二() {
+        when(orderMapper.selectById(5L)).thenReturn(order(5L, 2L, OrderStatus.PAID));
+
+        BizException exception = assertThrows(BizException.class, () -> orderService.receive(2L, 5L));
+        assertEquals(ResultCode.ORDER_STATUS_INVALID.getCode(), exception.getCode());
+        verify(orderMapper, never()).markCompleted(any(), any(), any(), any());
+    }
+
     // ------------------------------------------------------------ 夹具
 
     private void mockCartLine(Long itemId, int quantity, int productStatus, int stock) {
@@ -334,8 +455,30 @@ class OrderServiceImplTest {
         return form;
     }
 
-    private CartItemVO cart(Long cartId, Long itemId, int quantity) {
-        CartItemVO vo = new CartItemVO();
+    private Order order(Long id, Long accountId, OrderStatus status) {
+        Order order = new Order();
+        order.setId(id);
+        order.setAccountId(accountId);
+        order.setStatus(status.name());
+        order.setOrderNo("2026111720150" + id);
+        order.setTotalAmount(new BigDecimal("149.00"));
+        order.setFreightAmount(new BigDecimal("0.00"));
+        return order;
+    }
+
+    private OrderItem line(Long orderId, Long itemId, Long productId, int quantity) {
+        OrderItem line = new OrderItem();
+        line.setOrderId(orderId);
+        line.setItemId(itemId);
+        line.setProductId(productId);
+        line.setProductName("测试商品");
+        line.setSpec("测试规格");
+        line.setPrice(new BigDecimal("39.00"));
+        line.setQuantity(quantity);
+        return line;
+    }
+
+    private CartItemVO cart(Long cartId, Long itemId, int quantity) {        CartItemVO vo = new CartItemVO();
         vo.setCartId(cartId);
         vo.setItemId(itemId);
         vo.setQuantity(quantity);

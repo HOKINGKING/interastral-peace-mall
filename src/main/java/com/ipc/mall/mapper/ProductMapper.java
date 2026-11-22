@@ -6,6 +6,7 @@ import com.ipc.mall.dto.ProductQuery;
 import com.ipc.mall.entity.Product;
 import com.ipc.mall.vo.ProductCardVO;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -34,4 +35,11 @@ public interface ProductMapper extends BaseMapper<Product> {
     IPage<ProductCardVO> selectCardPage(IPage<ProductCardVO> page,
                                         @Param("q") ProductQuery query,
                                         @Param("categoryIds") List<Long> categoryIds);
+
+    /**
+     * 销量累加（PRD §7.6）：只在订单 PENDING_PAYMENT → PAID 的同一事务里调用，
+     * 状态条件更新成功才累加，天然只加一次；取消/关单不回退。
+     */
+    @Update("UPDATE product SET sales = sales + #{qty} WHERE id = #{productId}")
+    int increaseSales(@Param("productId") Long productId, @Param("qty") Integer qty);
 }
