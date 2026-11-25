@@ -28,6 +28,7 @@ public enum ResultCode {
     // ---------- 商品 / 购物车 / 订单（PRD §10.4） ----------
     PRODUCT_OFF_SALE(2001, "商品不存在或已下架"),
     STOCK_NOT_ENOUGH(2002, "库存不足"),
+    CATEGORY_IN_USE(2004, "存在子分类或商品，无法删除"),
     NO_PERMISSION(3004, "无权操作该资源"),
 
     // ---------- 订单（PRD §10.4 / §8） ----------

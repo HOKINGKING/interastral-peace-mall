@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('category')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top(${'分类管理 / ' + pageTitle})}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1 th:text="${pageTitle}">新增分类</h1>
+                <p>名称在同一层级内不能重复；上级留空即为一级分类</p>
+            </div>
+            <div class="row">
+                <a class="btn btn-sm" th:href="@{/admin/category}">返回列表</a>
+            </div>
+        </div>
+
+        <div class="panel pad" style="max-width:640px">
+            <form th:action="@{/admin/category/save}" method="post"
+                  data-admin-form data-redirect="/admin/category">
+                <input type="hidden" name="id" th:if="${categoryForm.id != null}" th:value="${categoryForm.id}">
+
+                <div class="field">
+                    <label>上级分类</label>
+                    <select class="select" name="parentId" th:disabled="${lockedParent}">
+                        <option value="0"
+                                th:selected="${categoryForm.parentId == null or categoryForm.parentId == 0}">
+                            （无，作为一级分类）
+                        </option>
+                        <option th:each="root : ${roots}" th:value="${root.id}"
+                                th:selected="${categoryForm.parentId != null and categoryForm.parentId == root.id}"
+                                th:text="${root.name}">一级分类</option>
+                    </select>
+                    <input type="hidden" name="parentId" value="0" th:if="${lockedParent}">
+                    <div class="help" th:if="${lockedParent}">该分类下还有子分类，不能改为二级分类</div>
+                </div>
+
+                <div class="field">
+                    <label>分类名称<span class="req">*</span></label>
+                    <input class="input" type="text" name="name" maxlength="30"
+                           th:value="${categoryForm.name}" placeholder="如：杯壶">
+                </div>
+
+                <div class="field">
+                    <label>分类描述</label>
+                    <input class="input" type="text" name="descn" maxlength="200"
+                           th:value="${categoryForm.descn}" placeholder="选填，如：水杯、保温杯">
+                </div>
+
+                <div class="field">
+                    <label>排序</label>
+                    <input class="input" type="number" name="sort" min="0" step="1"
+                           th:value="${categoryForm.sort != null ? categoryForm.sort : 0}">
+                    <div class="help">数字越小越靠前，一级和二级各自排序</div>
+                </div>
+
+                <div class="field">
+                    <label class="row" style="gap:8px;cursor:pointer">
+                        <input type="checkbox" class="checkbox" name="visible" value="1"
+                               th:checked="${categoryForm.visible == '1'}">
+                        前台可见
+                    </label>
+                    <div class="help">隐藏后前台导航与筛选不再出现该分类，商品不受影响</div>
+                </div>
+
+                <div class="row">
+                    <button class="btn btn-primary" type="submit">保存</button>
+                    <a class="btn" th:href="@{/admin/category}">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>
