@@ -60,7 +60,7 @@
                         <div class="panel pad">
                             <div class="between mb-16">
                                 <b>收货地址</b>
-                                <a class="btn btn-sm" th:href="@{/address/form}">新增地址</a>
+                                <a class="btn btn-sm" th:href="@{/address/form(returnTo=${checkoutReturnUrl})}">新增地址</a>
                             </div>
                             <div class="grid-2" th:if="${!checkout.addresses.isEmpty()}">
                                 <label class="addr-card" th:each="addr : ${checkout.addresses}"
@@ -74,7 +74,7 @@
                                 </label>
                             </div>
                             <div class="small muted" th:if="${checkout.addresses.isEmpty()}">
-                                还没有收货地址，先 <a th:href="@{/address/form}">添加一条收货地址</a> 再来结算。
+                                还没有收货地址，先 <a th:href="@{/address/form(returnTo=${checkoutReturnUrl})}">添加一条收货地址</a> 再来结算。
                             </div>
                         </div>
 

@@ -3,6 +3,7 @@ package com.ipc.mall.controller.front;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.result.ResultCode;
+import com.ipc.mall.common.util.AuthWebUtils;
 import com.ipc.mall.dto.AddressForm;
 import com.ipc.mall.entity.Address;
 import com.ipc.mall.service.AddressService;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,6 +57,7 @@ public class AddressController {
     @GetMapping({"/address/form", "/address/form/{id}"})
     public String form(@PathVariable(value = "id", required = false) Long id,
                        @RequestParam(value = "id", required = false) Long queryId,
+                       @RequestParam(value = "returnTo", required = false) String returnTo,
                        HttpSession session,
                        Model model,
                        RedirectAttributes redirectAttributes) {
@@ -74,6 +77,8 @@ public class AddressController {
         }
         model.addAttribute("pageTitle", addressId == null ? "新增收货地址" : "编辑收货地址");
         model.addAttribute("addressForm", form);
+        // 从确认订单页进来时带回跳地址，保存/取消后回到原来的结算页
+        model.addAttribute("returnTo", safeReturnTo(returnTo));
         return "front/address/form";
     }
 
@@ -123,6 +128,19 @@ public class AddressController {
     }
 
     // ------------------------------------------------------------------ 内部方法
+
+    /**
+     * returnTo 只接受站内绝对路径；非法值（外链、//、反斜杠等）一律丢弃，
+     * 地址表单保存后回到默认的地址列表。
+     */
+    private String safeReturnTo(String target) {
+        if (!StringUtils.hasText(target)) {
+            return null;
+        }
+        String value = target.trim();
+        String safe = AuthWebUtils.safeRedirect(value);
+        return safe.equals(value) ? safe : null;
+    }
 
     private void fill(AddressForm form, Address address) {
         form.setId(address.getId());

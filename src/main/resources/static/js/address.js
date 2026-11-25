@@ -68,8 +68,11 @@
       request('POST', '/address/save', payload).then(function (result) {
         if (result && result.code === 200) {
           toast(result.message || '收货地址已保存');
+          // 从确认订单页进来时带 returnTo，保存后回到原结算页；否则回地址列表
+          var returnTo = form.querySelector('input[name="returnTo"]');
+          var target = returnTo && returnTo.value ? returnTo.value : '/address/list';
           setTimeout(function () {
-            window.location.href = '/address/list';
+            window.location.href = target;
           }, 500);
           return;
         }

@@ -22,6 +22,7 @@
                 <!-- 保存走 fetch（static/js/address.js），失败信息由统一 Result 返回 -->
                 <form th:action="@{/address/save}" method="post" data-address-form>
                     <input type="hidden" name="id" th:if="${addressForm.id != null}" th:value="${addressForm.id}">
+                    <input type="hidden" name="returnTo" th:if="${returnTo != null}" th:value="${returnTo}">
 
                     <div class="grid-2">
                         <div class="field">
@@ -71,7 +72,7 @@
 
                     <div class="row">
                         <button class="btn btn-primary" type="submit">保存</button>
-                        <a class="btn" th:href="@{/address/list}">取消</a>
+                        <a class="btn" th:href="${returnTo != null ? returnTo : '/address/list'}">取消</a>
                     </div>
                 </form>
             </div>

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -78,7 +79,21 @@ public class OrderController {
 
         model.addAttribute("pageTitle", "确认订单");
         model.addAttribute("checkout", checkout);
+        // 从确认页去新增地址时带上返回地址，保存后回到同一笔结算（保留 cartIds / itemId+quantity）
+        model.addAttribute("checkoutReturnUrl", checkoutReturnUrl(cartIds, itemId, quantity));
         return "front/order/checkout";
+    }
+
+    /** 拼接确认订单页的完整路径，作为地址表单的 returnTo */
+    private String checkoutReturnUrl(String cartIds, Long itemId, Integer quantity) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/order/checkout");
+        if (StringUtils.hasText(cartIds)) {
+            builder.queryParam("cartIds", cartIds);
+        } else if (itemId != null) {
+            builder.queryParam("itemId", itemId);
+            builder.queryParam("quantity", quantity == null ? 1 : quantity);
+        }
+        return builder.build().encode().toUriString();
     }
 
     // ------------------------------------------------------------------ F25 提交订单

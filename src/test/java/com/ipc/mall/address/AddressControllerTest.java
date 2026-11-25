@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -93,6 +94,24 @@ class AddressControllerTest {
                 .andExpect(view().name("front/address/form"))
                 .andExpect(model().attribute("pageTitle", "新增收货地址"))
                 .andExpect(model().attributeExists("addressForm"));
+    }
+
+    @Test
+    void 新增表单保留返回结算页地址() throws Exception {
+        mockMvc.perform(get("/address/form")
+                        .param("returnTo", "/order/checkout?itemId=1&quantity=2")
+                        .session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("returnTo", "/order/checkout?itemId=1&quantity=2"));
+    }
+
+    @Test
+    void 新增表单忽略外链returnTo() throws Exception {
+        mockMvc.perform(get("/address/form")
+                        .param("returnTo", "https://evil.example.com/steal")
+                        .session(loginSession()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("returnTo", nullValue()));
     }
 
     @Test
