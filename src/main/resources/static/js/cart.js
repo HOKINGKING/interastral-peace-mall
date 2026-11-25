@@ -127,6 +127,7 @@
 
   var items = Array.prototype.slice.call(cartRoot.querySelectorAll('[data-cart-id]')).map(function (row) {
     var input = row.querySelector('.qty input');
+    var qtyBox = row.querySelector('.qty');
     return {
       row: row,
       id: Number(row.getAttribute('data-cart-id')),
@@ -134,6 +135,7 @@
       available: row.getAttribute('data-available') !== 'false',
       checkbox: row.querySelector('[data-check]'),
       input: input,
+      maxQty: Number(qtyBox && qtyBox.getAttribute('data-max')) || 99,
       subtotalEl: row.querySelector('[data-subtotal]'),
       lastQty: Number(input && input.value) || 1,
       timer: null
@@ -198,6 +200,32 @@
     });
   }
 
+  /** 键盘输入数量：只保留数字，1–min(库存, 99) 之间，超范围提示并夹取 */
+  function clampQuantity(item) {
+    if (!item.input) {
+      return 0;
+    }
+    var raw = String(item.input.value || '').replace(/[^\d]/g, '');
+    var value = raw === '' ? 1 : parseInt(raw, 10);
+    if (!value || value < 1) {
+      value = 1;
+    }
+    var max = Math.min(Number(item.maxQty) || 99, 99);
+    if (value > max) {
+      value = max;
+      toast('数量需在 1–' + max + ' 之间');
+    }
+    item.input.value = String(value);
+    return value;
+  }
+
+  /** 失焦 / 回车时提交：先校正再按防抖保存 */
+  function commitQuantity(item) {
+    clampQuantity(item);
+    recompute();
+    scheduleSave(item);
+  }
+
   /** 连点时只发最后一次，避免 1→2→3 的乱序覆盖 */
   function scheduleSave(item) {
     clearTimeout(item.timer);
@@ -251,6 +279,28 @@
         }, 0);
       });
     });
+    if (item.input) {
+      // 输入过程中只保留数字并实时重算小计，失焦/回车再校正范围并保存
+      item.input.addEventListener('input', function () {
+        var cleaned = item.input.value.replace(/[^\d]/g, '');
+        if (cleaned !== item.input.value) {
+          item.input.value = cleaned;
+        }
+        recompute();
+      });
+      item.input.addEventListener('change', function () {
+        commitQuantity(item);
+      });
+      item.input.addEventListener('blur', function () {
+        commitQuantity(item);
+      });
+      item.input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          item.input.blur();
+        }
+      });
+    }
     var remove = item.row.querySelector('[data-remove]');
     if (remove) {
       remove.addEventListener('click', function () {

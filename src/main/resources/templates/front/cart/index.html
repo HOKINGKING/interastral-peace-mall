@@ -60,14 +60,16 @@
                             <div class="small" style="color:var(--danger)"
                                  th:if="${item.available and item.stock < item.quantity}"
                                  th:text="|库存仅剩 ${item.stock} 件，请调整数量|">库存不足</div>
-                            <a class="small muted cart-remove" href="javascript:void(0)" role="button" data-remove>删除</a>
+                            <button class="btn btn-sm btn-danger cart-remove" type="button"
+                                    data-remove>🗑 删除</button>
                         </div>
 
                         <div th:text="|¥${item.priceText}|">¥0.00</div>
 
                         <div class="qty" data-qty data-min="1" th:attr="data-max=${item.maxQty}">
                             <button type="button" data-dec th:disabled="${!item.available}">−</button>
-                            <input th:value="${item.quantity}" readonly aria-label="数量">
+                            <input th:value="${item.quantity}" inputmode="numeric" autocomplete="off"
+                                   aria-label="数量，可直接输入或点击加减">
                             <button type="button" data-inc th:disabled="${!item.available}">+</button>
                         </div>
 

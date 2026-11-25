@@ -36,7 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/order", "/order/**",
                         "/address", "/address/**",
                         "/feedback", "/feedback/**",
-                        "/user/center", "/user/password")
+                        "/user/center", "/user/password", "/user/password/**")
                 .excludePathPatterns(
                         "/login", "/register", "/user/login", "/user/register", "/captcha",
                         "/css/**", "/js/**", "/img/**", "/favicon.ico", "/uploads/**", "/error");

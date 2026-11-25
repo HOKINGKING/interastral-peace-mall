@@ -105,6 +105,9 @@ public class AccountServiceImpl implements AccountService {
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
             throw new BizException(ResultCode.FAIL.getCode(), "两次输入的新密码不一致");
         }
+        if (form.getNewPassword().equals(form.getOldPassword())) {
+            throw new BizException(ResultCode.FAIL.getCode(), "新密码不能与原密码相同");
+        }
 
         accountMapper.update(null, Wrappers.<Account>update()
                 .eq("id", accountId)

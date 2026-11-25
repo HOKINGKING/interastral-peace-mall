@@ -43,10 +43,19 @@
 }
 
 .cart-remove {
-    margin-top: 4px;
-    display: inline-block;
+    margin-top: 8px;
+    font-weight: 600;
 }
 
 .cart-remove:hover {
-    color: var(--danger);
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+
+/* 数量可以直接键盘输入，也可以点加减按钮；失焦/回车时校验并保存 */
+.cart-row .qty input:focus {
+    outline: none;
+    color: var(--brand);
+    font-weight: 700;
 }

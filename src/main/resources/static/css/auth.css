@@ -43,6 +43,12 @@
   background: #eef0ff;
 }
 
+/* 修改密码表单：异步校验失败时的输入框高亮 */
+.input.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .08);
+}
+
 .auth-alert {
   margin-bottom: 16px;
   padding: 10px 12px;

@@ -3,6 +3,7 @@ package com.ipc.mall.controller.front;
 import com.ipc.mall.common.constant.CaptchaScope;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
+import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.result.ResultCode;
 import com.ipc.mall.common.util.AuthWebUtils;
 import com.ipc.mall.dto.ChangePasswordForm;
@@ -12,16 +13,20 @@ import com.ipc.mall.service.AccountService;
 import com.ipc.mall.service.CaptchaService;
 import com.ipc.mall.vo.AccountProfileVO;
 import com.ipc.mall.vo.LoginAccount;
+import com.ipc.mall.vo.PasswordChangeResultVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * 前台认证页面（PRD §5.5–5.8）。
@@ -205,6 +210,55 @@ public class AccountController {
         // 只轮换 ID，保留后台登录态
         request.changeSessionId();
         return "redirect:/login?changed=1";
+    }
+
+    /**
+     * 修改密码的异步版本（PRD §5.8）：前端 fetch 调用，错误只刷新提示文字，不整页刷新。
+     * <p>
+     * 返回体里的 {@code data.field} 告诉前端该把错误显示在哪个输入框下面；
+     * 新密码相关错误由前端清空「新密码 / 确认新密码」两栏，原密码保留以便重试。
+     */
+    @PostMapping(value = "/user/password/async", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Result<PasswordChangeResultVO> changePasswordAsync(
+            @Valid @ModelAttribute("changePasswordForm") ChangePasswordForm form,
+            BindingResult bindingResult,
+            HttpServletRequest request) {
+        LoginAccount loginAccount = currentAccount(request.getSession(false));
+        if (loginAccount == null) {
+            return Result.fail(ResultCode.UNAUTHORIZED);
+        }
+        if (bindingResult.hasErrors()) {
+            FieldError fieldError = bindingResult.getFieldError();
+            String field = fieldError == null ? "newPassword" : fieldError.getField();
+            String message = fieldError == null ? "请检查输入" : fieldError.getDefaultMessage();
+            return passwordFail(ResultCode.FAIL.getCode(), field, message);
+        }
+        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
+            return passwordFail(ResultCode.FAIL.getCode(), "confirmPassword", "两次输入的新密码不一致");
+        }
+
+        try {
+            accountService.changePassword(loginAccount.getAccountId(), form);
+        } catch (BizException e) {
+            String field = e.getCode() == ResultCode.OLD_PASSWORD_ERROR.getCode()
+                    ? "oldPassword"
+                    : "newPassword";
+            return passwordFail(e.getCode(), field, e.getMessage());
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            clearFrontLogin(session);
+        }
+        // 只轮换 ID，保留后台登录态
+        request.changeSessionId();
+        return Result.ok("密码修改成功，请使用新密码重新登录",
+                PasswordChangeResultVO.redirect("/login?changed=1"));
+    }
+
+    private Result<PasswordChangeResultVO> passwordFail(int code, String field, String message) {
+        return new Result<>(code, message, PasswordChangeResultVO.field(field));
     }
 
     private LoginAccount currentAccount(HttpSession session) {
