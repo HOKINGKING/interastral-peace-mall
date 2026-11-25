@@ -1,8 +1,8 @@
 # 星际和平商城 · 产品需求文档（PRD）
 
 > Interastral Peace Mall — Product Requirements Document
-> 版本：v1.1（评审稿）
-> 日期：2026-11-19
+> 版本：v1.2（评审稿）
+> 日期：2026-11-25
 > 范围：用户端商城（前台）+ 后台管理系统（卖家端）
 > 关联文档：`README.md`（技术栈与目录）、`db/init.sql`（建表脚本）、`docs/api.md`（接口表，可由本文 §10 导出）
 > 读者：开发（前端/后端）、测试、答辩评委
@@ -70,7 +70,7 @@
 |---|---|
 | 前台 · 商品 | 首页、分类页、商品列表（筛选/排序/搜索/分页/仅看有货）、商品详情（相册、参数表）与 SKU 切换、加购、立即购买 |
 | 前台 · 用户 | 注册、登录、图形验证码、登出、个人中心、修改密码 |
-| 前台 · 交易 | 购物车（加购/改量/删除/勾选）、收货地址（增删改查/设默认）、结算下单（含订单备注）、模拟支付、订单列表/详情/取消/确认收货/删除终态订单 |
+| 前台 · 交易 | 购物车（加购/改量/删除/勾选）、收货地址（增删改查/设默认）、结算下单（含订单备注）、模拟支付与支付流水、订单列表/详情/取消/确认收货/删除终态订单 |
 | 前台 · 售后 | 订单投诉（仅限本人已购买订单）、意见反馈、投诉补充说明与确认已解决、我的投诉与反馈 |
 | 后台 · 商品 | 分类管理（增删改查）、商品管理（增删改查、上下架、主图上传） |
 | 后台 · 用户 | 用户列表/详情/修改/禁用/重置密码 |
@@ -315,15 +315,16 @@ com.ipc.mall
 
 - 页面：订单号、应付金额、倒计时（可选）、「模拟支付成功」「取消支付」两个按钮。
 - 支付成功：`POST /order/{id}/pay` → 校验 `status=PENDING_PAYMENT` 且订单属于当前用户 → 置 `PAID`、写 `pay_time`。
+- **支付流水**：支付成功时在**同一事务**内写 `payment_record`（`order_id` 唯一、`transaction_no` 唯一、金额取订单应付快照、`pay_method='MOCK'`、`status='SUCCESS'`）；订单详情展示流水号、支付方式、金额、时间。取消、未支付不产生流水。
 - 取消：`POST /order/{id}/cancel` → 状态置 `CANCELLED`、写 `cancel_time`、**回补库存**。
-- 幂等：重复点击支付，若已是 `PAID` 则直接跳成功页（不重复写时间戳）。
+- 幂等：重复点击支付，若已是 `PAID` 则直接跳成功页（不重复写时间戳、不重复写流水）。
 
 ### 5.13 订单管理
 
 | 功能 | 规则 |
 |---|---|
 | 订单列表 | 按状态 Tab（全部/待支付/已支付/已发货/已完成/已取消）筛选；分页；展示订单号、下单时间、首件商品图+名称、件数、总额、状态、操作按钮 |
-| 订单详情 | 商品明细、收货信息、订单备注（`remark`，用户下单时填写、后台可改）、金额（商品总额 + 运费 = 应付）、状态时间线（下单/支付/发货/完成/取消，各自取对应时间戳）、物流公司 + 单号（已发货后显示） |
+| 订单详情 | 商品明细、收货信息、订单备注（`remark`，用户下单时填写、后台可改）、金额（商品总额 + 运费 = 应付）、状态时间线（下单/支付/发货/完成/取消，各自取对应时间戳）、物流公司 + 单号（已发货后显示）、支付流水（已支付后显示流水号/方式/金额/时间） |
 | 去支付 | 仅 `PENDING_PAYMENT` |
 | 取消订单 | 仅 `PENDING_PAYMENT`；二次确认；回补库存 |
 | 确认收货 | 仅 `SHIPPED`；二次确认；置 `COMPLETED`、写 `finish_time` |
@@ -470,7 +471,7 @@ com.ipc.mall
 | 时间 | `DATETIME`，`serverTimezone=Asia/Shanghai` |
 | 逻辑删除与唯一索引 | 唯一索引一律带上 `deleted` 或改用「含已删除记录的应用层查重」，见 §7.5 |
 
-### 7.2 表清单（10 张业务表 + 2 张辅助表）
+### 7.2 表清单（11 张业务表 + 2 张辅助表）
 
 | # | 表名 | 说明 | 归属 |
 |---|---|---|---|
@@ -481,13 +482,14 @@ com.ipc.mall
 | 5 | `cart` | 购物车 | 前台 |
 | 6 | `orders` | 订单主表（含收货/物流快照） | 公共 |
 | 7 | `order_item` | 订单明细（商品快照） | 公共 |
-| 8 | `address` | 收货地址 | 前台 |
-| 9 | `admin` | 后台卖家账号 | 后台 |
-| 10 | `feedback` | 投诉与反馈（`type` 区分，投诉绑订单） | 公共 |
-| 11 | `sys_oper_log` | 操作日志（审计） | 公共 |
-| 12 | `sys_check` | 环境自检（已存在） | 辅助 |
+| 8 | `payment_record` | 支付流水（一单一成功流水） | 前台 |
+| 9 | `address` | 收货地址 | 前台 |
+| 10 | `admin` | 后台卖家账号 | 后台 |
+| 11 | `feedback` | 投诉与反馈（`type` 区分，投诉绑订单） | 公共 |
+| 12 | `sys_oper_log` | 操作日志（审计） | 公共 |
+| 13 | `sys_check` | 环境自检（已存在） | 辅助 |
 
-> 与 README「10 张业务表」一致（不含 `sys_oper_log`、`sys_check`）。建表顺序：`account`、`admin`、`category` → `product` → `item` → `cart`、`address` → `orders` → `order_item` → `feedback` → `sys_oper_log`。
+> 与 README「11 张业务表」一致（不含 `sys_oper_log`、`sys_check`）。建表顺序：`account`、`admin`、`category` → `product` → `item` → `cart`、`address` → `orders` → `order_item` → `payment_record` → `feedback` → `sys_oper_log`。
 
 ### 7.3 字段字典
 
@@ -614,6 +616,21 @@ com.ipc.mall
 | image | VARCHAR(255) | NULL | 快照，订单列表展示用 |
 | create_time | DATETIME | NOT NULL | 无 update/delete（明细随主单） |
 
+**payment_record（支付流水，一单一成功流水）**
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | BIGINT | PK | — |
+| order_id | BIGINT | NOT NULL, UNIQUE | 订单 id，一单最多一条成功流水 |
+| order_no | VARCHAR(32) | NOT NULL | 订单号快照，对账不必回查 `orders` |
+| account_id | BIGINT | NOT NULL, INDEX | 支付用户 |
+| amount | DECIMAL(10,2) | NOT NULL, CHECK (`amount >= 0`) | 支付金额，取订单应付快照 |
+| pay_method | VARCHAR(20) | NOT NULL DEFAULT 'MOCK' | 支付方式，本期仅 `MOCK` 模拟支付 |
+| status | VARCHAR(20) | NOT NULL DEFAULT 'SUCCESS' | 流水状态，本期仅 `SUCCESS` |
+| transaction_no | VARCHAR(64) | NOT NULL, UNIQUE | 支付流水号，规则 `PAY + orderNo` |
+| pay_time | DATETIME | NOT NULL | 支付时间 |
+| deleted / create_time / update_time | — | — | 记录只增不删，删除字段仅为与 BaseEntity 一致 |
+
 **feedback（投诉与反馈）**
 
 | 字段 | 类型 | 约束 | 说明 |
@@ -662,6 +679,7 @@ com.ipc.mall
 | cart | (`account_id`,`item_id`) | 加购查重（非唯一，见 §7.5） |
 | orders | UNIQUE(`order_no`)、(`account_id`,`status`,`create_time`) | 幂等 + 我的订单筛选 |
 | order_item | (`order_id`)、(`product_id`) | 详情/列表聚合 + 销量归集与回填 |
+| payment_record | UNIQUE(`order_id`)、UNIQUE(`transaction_no`)、(`account_id`,`pay_time`) | 支付幂等 + 对账 |
 | feedback | (`account_id`,`create_time`)、(`order_id`)、(`type`,`status`) | 我的反馈 / 按订单查重 / 后台筛选 |
 | sys_oper_log | (`admin_id`,`create_time`)、(`module`) | 后台日志页 |
 
@@ -838,10 +856,10 @@ com.ipc.mall
 | F24 | GET | `/order/checkout` | 确认订单（`itemId`+`quantity` 或 `cartIds`） | 是 |
 | F25 | POST | `/order/submit` | 提交订单（`submitToken`、`remark`）→ 302 支付页 | 是 |
 | F26 | GET | `/order/{id}/pay` | 支付页 | 是 |
-| F27 | POST | `/order/{id}/pay` | 模拟支付成功 | 是 |
-| F28 | POST | `/order/{id}/cancel` | 取消订单 | 是 |
+| F27 | POST | `/order/{id}/pay` | 模拟支付成功：置 `PAID`、写 `pay_time`、累加销量、写一条支付流水 | 是 |
+| F28 | POST | `/order/{id}/cancel` | 取消订单（回补库存） | 是 |
 | F29 | GET | `/order/list` | 订单列表（`status`、`page`） | 是 |
-| F30 | GET | `/order/{id}` | 订单详情 | 是 |
+| F30 | GET | `/order/{id}` | 订单详情（含支付流水） | 是 |
 | F31 | POST | `/order/{id}/receive` | 确认收货 | 是 |
 | F32 | GET | `/feedback/form` | 投诉/反馈表单（`orderId` 有值为投诉） | 是 |
 | F33 | POST | `/feedback/submit` | 提交（`type`、`orderId`、`category`、`content`、`contact`） | 是 |
@@ -1041,6 +1059,7 @@ com.ipc.mall
 | AC-44 | G：SPU 配置 5 张相册图与 6 组参数；W：打开详情页并点击缩略图；T：主图随点击切换且 URL 不变，参数表按 key-value 展示；`specs` 为非法 JSON 时参数区隐藏、页面其余部分正常 |
 | AC-45 | G：新用户下单支付 2 件同 SPU；W：查看商品卡、详情、后台 SPU 列表；T：三处「已售」均 +2；另一笔待支付订单取消后已售不变 |
 | AC-46 | G：`REPLIED` 投诉；W：用户先「补充说明」再「我已解决」；T：`user_note` 追加带时间前缀的一条说明、状态仍为 `REPLIED`；点「我已解决」后置 `CLOSED`、`close_reason='用户确认已解决'`，重复点击返回 3002 |
+| AC-47 | G：待支付订单；W：调用 `POST /order/{id}/pay`；T：订单变 `PAID`、写 `pay_time`、`product.sales` 增加，`payment_record` 新增一条（`order_id` 与 `transaction_no` 唯一），订单详情显示流水号/支付方式/金额/时间；再次支付不新增流水 |
 
 ---
 
@@ -1049,7 +1068,7 @@ com.ipc.mall
 | 阶段 | 内容 | 完成标志 |
 |---|---|---|
 | M0 ✅ | 骨架：pom、application.yml、统一返回、全局异常、MP 分页/乐观锁、`/ping`、`init.sql` 建库 | `/ping` 通 |
-| M1 | 数据层：10 张业务表 DDL + 测试数据、`BaseEntity` + 自动填充、实体/Mapper | 表建好，MP 能查通 |
+| M1 | 数据层：11 张业务表 DDL + 测试数据、`BaseEntity` + 自动填充、实体/Mapper | 表建好，MP 能查通 |
 | M2 | 公共层：`LoginInterceptor`、`AdminLoginInterceptor`、验证码、上传、`@OperLog` 切面 | 未登录被拦、验证码出图、日志落表 |
 | M3 | 前台商品：首页、分类页、列表（筛选/排序/搜索）、详情与 SKU 切换、加购入口 | AC-01～AC-06 |
 | M4 | 前台用户：注册、登录、登出、个人中心、改密 | AC-07～AC-10 |
@@ -1124,6 +1143,7 @@ com.ipc.mall
 | D-16 | SPU 相册与参数表存 `product.images` / `product.specs` | 建 `product_image` 表 / 每个参数建固定字段 | 课程规模下 ≤5 张相册、≤8 组参数，逗号分隔 + JSON 足够；独立表要多一套 CRUD，固定字段又表达不了「不同品类参数不同」（§5.4） |
 | D-17 | 前台允许用户删除终态订单 | 只有后台可删 | 已取消/已完成订单留在前台列表只增加噪音；复用 T7 的终态限制与逻辑删除，不新增状态、不涉及库存（§5.13） |
 | D-18 | 售后增加「补充说明」与「我已解决」 | 只留撤销 / 只留卖家关闭 | 原型已出这两个动作：补充说明解决「用户想追加信息但不想重开投诉」，我已解决让 `REPLIED` 有用户侧收口；用 `user_note` 追加文本 + C6 条件更新即可，不破坏状态机（§5.15、§8.4） |
+| D-19 | 支付流水独立成表 `payment_record` | 只靠 `orders.pay_time` / 应用日志 | `pay_time` 只能说明「何时付」，无法承载流水号、支付方式、金额快照与对账；独立表用 `order_id`/`transaction_no` 唯一索引兜底幂等，并让「一次支付」成为可审计实体，成本仅一张表（§5.12、§7.3） |
 
 ## 附录 B · 答辩演示脚本（5 分钟）
 
@@ -1139,5 +1159,6 @@ com.ipc.mall
 
 | 版本 | 日期 | 变更 | 作者 |
 |---|---|---|---|
+| v1.2 | 2026-11-25 | 新增支付流水：`payment_record` 表（§7.3、D-19）、支付成功写流水与幂等规则（§5.12、AC-47）、订单详情展示流水（§5.13）、索引与接口说明同步；业务表由 10 张增至 11 张 | — |
 | v1.1 | 2026-11-19 | 按 HTML 原型对齐需求：① 新增 `product.sales` 销量字段与 §7.6 统计口径、`order_item.product_id` 快照；② SPU 相册 `images` 与商品参数 `specs` 纳入 P0（D-16）；③ 前台可删除终态订单（§5.13、F37、D-17）；④ 用户端订单备注开放（§5.11、Q4）；⑤「仅看有货」与四种排序由 P1 升 P0（§5.3、Q1）；⑥ 售后新增「补充说明」「我已解决」（`feedback.user_note`、C6、F38/F39、D-18）；新增 AC-43～AC-46 | — |
 | v1.0 | 2026-11-17 | 初稿：范围与角色、商品/用户/交易/后台四域功能、数据模型、订单状态机、接口与错误码、验收标准、里程碑 | — |

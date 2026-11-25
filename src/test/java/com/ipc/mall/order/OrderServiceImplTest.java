@@ -12,11 +12,13 @@ import com.ipc.mall.entity.Address;
 import com.ipc.mall.entity.Item;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.entity.OrderItem;
+import com.ipc.mall.entity.PaymentRecord;
 import com.ipc.mall.entity.Product;
 import com.ipc.mall.mapper.AddressMapper;
 import com.ipc.mall.mapper.ItemMapper;
 import com.ipc.mall.mapper.OrderItemMapper;
 import com.ipc.mall.mapper.OrderMapper;
+import com.ipc.mall.mapper.PaymentRecordMapper;
 import com.ipc.mall.mapper.ProductMapper;
 import com.ipc.mall.service.AddressService;
 import com.ipc.mall.service.CartService;
@@ -63,6 +65,7 @@ class OrderServiceImplTest {
     private OrderItemMapper orderItemMapper;
     private ItemMapper itemMapper;
     private ProductMapper productMapper;
+    private PaymentRecordMapper paymentRecordMapper;
     private CartService cartService;
     private AddressService addressService;
     private AddressMapper addressMapper;
@@ -74,11 +77,12 @@ class OrderServiceImplTest {
         orderItemMapper = mock(OrderItemMapper.class);
         itemMapper = mock(ItemMapper.class);
         productMapper = mock(ProductMapper.class);
+        paymentRecordMapper = mock(PaymentRecordMapper.class);
         cartService = mock(CartService.class);
         addressService = mock(AddressService.class);
         addressMapper = mock(AddressMapper.class);
         orderService = new OrderServiceImpl(orderMapper, orderItemMapper, itemMapper, productMapper,
-                cartService, addressService, addressMapper);
+                paymentRecordMapper, cartService, addressService, addressMapper);
         when(orderMapper.insert(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.setId(100L);
@@ -334,6 +338,16 @@ class OrderServiceImplTest {
         verify(orderMapper).markPaid(eq(1L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(productMapper).increaseSales(4L, 2);
         verify(productMapper).increaseSales(6L, 1);
+
+        ArgumentCaptor<PaymentRecord> paymentCaptor = ArgumentCaptor.forClass(PaymentRecord.class);
+        verify(paymentRecordMapper).insert(paymentCaptor.capture());
+        PaymentRecord payment = paymentCaptor.getValue();
+        assertEquals("PAY20261117201501", payment.getTransactionNo());
+        assertEquals("149.00", payment.getAmount().toPlainString());
+        assertEquals(PaymentRecord.METHOD_MOCK, payment.getPayMethod());
+        assertEquals(PaymentRecord.STATUS_SUCCESS, payment.getStatus());
+        assertEquals(1L, payment.getOrderId());
+        assertNotNull(payment.getPayTime());
     }
 
     @Test
@@ -344,6 +358,7 @@ class OrderServiceImplTest {
 
         verify(orderMapper, never()).markPaid(any(), any(), any(), any());
         verify(productMapper, never()).increaseSales(any(), any());
+        verify(paymentRecordMapper, never()).insert(any(PaymentRecord.class));
     }
 
     @Test
@@ -499,6 +514,7 @@ class OrderServiceImplTest {
         when(orderMapper.selectById(2L)).thenReturn(completed);
         when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
                 line(2L, 7L, 5L, 1)));
+        when(paymentRecordMapper.selectOne(any(Wrapper.class))).thenReturn(paymentRecord(2L));
 
         OrderDetailVO detail = orderService.detail(1L, 2L);
 
@@ -510,6 +526,11 @@ class OrderServiceImplTest {
         assertEquals(1, detail.getItems().size());
         assertEquals("39.00", detail.getGoodsAmountText());
         assertEquals("129.00", detail.getTotalAmountText());
+        assertTrue(detail.isHasPayment());
+        assertEquals("PAY20261117201502", detail.getPaymentTransactionNo());
+        assertEquals("模拟支付", detail.getPaymentMethod());
+        assertEquals("129.00", detail.getPaymentAmountText());
+        assertNotNull(detail.getPaymentTimeText());
         assertTrue(detail.isCanDelete());
         assertFalse(detail.isCanPay());
         // 下单 / 支付 / 发货 / 完成 四个节点都已完成
@@ -640,8 +661,20 @@ class OrderServiceImplTest {
         return product;
     }
 
-    private Address address(Long id, Long accountId) {
-        Address address = new Address();
+    private PaymentRecord paymentRecord(Long orderId) {
+        PaymentRecord payment = new PaymentRecord();
+        payment.setOrderId(orderId);
+        payment.setOrderNo("2026111720150" + orderId);
+        payment.setAccountId(1L);
+        payment.setAmount(new BigDecimal("129.00"));
+        payment.setPayMethod(PaymentRecord.METHOD_MOCK);
+        payment.setStatus(PaymentRecord.STATUS_SUCCESS);
+        payment.setTransactionNo("PAY2026111720150" + orderId);
+        payment.setPayTime(LocalDateTime.now().minusDays(2).plusMinutes(1));
+        return payment;
+    }
+
+    private Address address(Long id, Long accountId) {        Address address = new Address();
         address.setId(id);
         address.setAccountId(accountId);
         address.setReceiver("星野");

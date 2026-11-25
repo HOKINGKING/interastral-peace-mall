@@ -12,11 +12,13 @@ import com.ipc.mall.entity.Address;
 import com.ipc.mall.entity.Item;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.entity.OrderItem;
+import com.ipc.mall.entity.PaymentRecord;
 import com.ipc.mall.entity.Product;
 import com.ipc.mall.mapper.AddressMapper;
 import com.ipc.mall.mapper.ItemMapper;
 import com.ipc.mall.mapper.OrderItemMapper;
 import com.ipc.mall.mapper.OrderMapper;
+import com.ipc.mall.mapper.PaymentRecordMapper;
 import com.ipc.mall.mapper.ProductMapper;
 import com.ipc.mall.service.AddressService;
 import com.ipc.mall.service.CartService;
@@ -71,6 +73,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemMapper orderItemMapper;
     private final ItemMapper itemMapper;
     private final ProductMapper productMapper;
+    private final PaymentRecordMapper paymentRecordMapper;
     private final CartService cartService;
     private final AddressService addressService;
     private final AddressMapper addressMapper;
@@ -79,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
                             OrderItemMapper orderItemMapper,
                             ItemMapper itemMapper,
                             ProductMapper productMapper,
+                            PaymentRecordMapper paymentRecordMapper,
                             CartService cartService,
                             AddressService addressService,
                             AddressMapper addressMapper) {
@@ -86,6 +90,7 @@ public class OrderServiceImpl implements OrderService {
         this.orderItemMapper = orderItemMapper;
         this.itemMapper = itemMapper;
         this.productMapper = productMapper;
+        this.paymentRecordMapper = paymentRecordMapper;
         this.cartService = cartService;
         this.addressService = addressService;
         this.addressMapper = addressMapper;
@@ -212,6 +217,8 @@ public class OrderServiceImpl implements OrderService {
         }
         // 销量只在状态确实流转成功时累加，且按 product_id 分组（PRD §7.6）
         increaseSales(orderId);
+        // 支付成功才写流水，与状态流转同一事务：要么「已支付 + 有流水」，要么都不发生
+        writePayment(order, now);
         log.info("订单支付成功: orderId={} account={}", orderId, accountId);
     }
 
@@ -281,7 +288,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailVO detail(Long accountId, Long orderId) {
         Order order = findOwned(accountId, orderId);
-        return OrderDetailVO.of(order, itemsOf(orderId));
+        OrderDetailVO detail = OrderDetailVO.of(order, itemsOf(orderId));
+        // 支付流水是独立凭证，按 order_id 查（唯一索引保证最多一条）
+        PaymentRecord payment = paymentRecordMapper.selectOne(new LambdaQueryWrapper<PaymentRecord>()
+                .eq(PaymentRecord::getOrderId, orderId)
+                .last("LIMIT 1"));
+        detail.applyPayment(payment);
+        return detail;
     }
 
     @Override
@@ -394,6 +407,26 @@ public class OrderServiceImpl implements OrderService {
     private List<OrderItem> itemsOf(Long orderId) {
         return orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>()
                 .eq(OrderItem::getOrderId, orderId));
+    }
+
+    /**
+     * 写支付流水（PRD §5.12 / §7.3 payment_record）。
+     * <p>
+     * 一单一成功流水，流水号固定为 {@code PAY + orderNo}：
+     * 只在 markPaid 影响行数为 1 时调用，与「待支付 → 已支付」一一对应；
+     * 表上的 {@code order_id} / {@code transaction_no} 唯一索引是并发兜底。
+     */
+    private void writePayment(Order order, LocalDateTime payTime) {
+        PaymentRecord payment = new PaymentRecord();
+        payment.setOrderId(order.getId());
+        payment.setOrderNo(order.getOrderNo());
+        payment.setAccountId(order.getAccountId());
+        payment.setAmount(OrderItemVO.scale(order.getTotalAmount()));
+        payment.setPayMethod(PaymentRecord.METHOD_MOCK);
+        payment.setStatus(PaymentRecord.STATUS_SUCCESS);
+        payment.setTransactionNo("PAY" + order.getOrderNo());
+        payment.setPayTime(payTime);
+        paymentRecordMapper.insert(payment);
     }
 
     /** 按 product_id 分组累加销量：同一订单里同一 SPU 的多条明细合并成一次更新 */

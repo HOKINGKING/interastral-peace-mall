@@ -49,6 +49,7 @@ interastral-peace-mall
 
 1. **建库**：打开 Navicat → 连上本地 MySQL → 依次执行 `db/schema.sql`、`db/data.sql`
    （`db/init.sql` 是旧版仅建库自检脚本，不再作为开发依据）
+   - 已有库升级到 v1.2：执行 `db/migration/20261125_add_payment_record.sql`（新增支付流水表并回填历史已支付订单）
 2. **配置数据库连接**：`application.yml` 里密码写成 `${DB_PASSWORD:hoking}`，
    - 本机 MySQL 密码就是 `hoking` 时**无需任何操作**，直接启动；
    - 不同环境在 IDEA 的 Run Configuration → Environment variables 里加 `DB_PASSWORD=你的密码` 即可，**不要把真实密码提交进仓库**；
@@ -75,16 +76,17 @@ interastral-peace-mall
 - [x] 全局异常处理（业务异常、参数校验、兜底 500）
 - [x] MyBatis-Plus 分页 + 乐观锁插件（`MybatisPlusConfig`）
 - [x] `application.yml`（数据源、MyBatis-Plus、上传、日志）
-- [x] 12 张表结构、实体与 Mapper（`db/schema.sql` / `db/data.sql`）
+- [x] 13 张表结构、实体与 Mapper（`db/schema.sql` / `db/data.sql`）
 - [x] 前台注册、登录、登出、图形验证码、个人中心、修改密码
 - [x] 后台登录、退出、`/admin` 工作台占位页
 - [x] 前后台登录拦截器、5 分钟账号状态回查、会话隔离
 - [x] 前台商品模块：首页（分类入口 + 推荐）、分类页（一级/二级）、商品列表（关键词/分类/仅看有货筛选，综合/价格/最新排序，分页）、商品详情（相册、参数表、SKU 切换、售罄/下架态）
+- [x] 购物车（加购/改量/删除/勾选/合计）、收货地址（增删改查/默认地址）
+- [x] 前台交易：确认订单、提交（一次性 Token + 条件扣库存）、订单列表/详情、取消、确认收货、模拟支付与支付流水
 - [x] 认证单元测试（`src/test/java/com/ipc/mall/auth`）
 
 ## 五、下一步
 
-- [ ] 购物车、收货地址、下单、模拟支付、订单状态机
 - [ ] 后台分类、SPU/SKU、用户、订单、发货、操作日志
 - [ ] 投诉与反馈（前台提交 + 后台受理/回复/关闭）
 

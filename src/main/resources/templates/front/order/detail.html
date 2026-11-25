@@ -132,6 +132,27 @@
                         </div>
                     </div>
 
+                    <div class="panel pad mt-16" th:if="${order.hasPayment}">
+                        <b>支付流水</b>
+                        <div class="divider"></div>
+                        <div class="between small">
+                            <span class="muted">流水号</span>
+                            <span class="mono" th:text="${order.paymentTransactionNo}">PAY20261116102133</span>
+                        </div>
+                        <div class="between small mt-8">
+                            <span class="muted">支付方式</span>
+                            <span th:text="${order.paymentMethod}">模拟支付</span>
+                        </div>
+                        <div class="between small mt-8">
+                            <span class="muted">支付金额</span>
+                            <span th:text="|¥${order.paymentAmountText}|">¥0.00</span>
+                        </div>
+                        <div class="between small mt-8">
+                            <span class="muted">支付时间</span>
+                            <span th:text="${order.paymentTimeText}">2026-11-16 10:22:03</span>
+                        </div>
+                    </div>
+
                     <div class="panel pad mt-16" th:if="${order.trackingNo != null}">
                         <b>物流信息</b>
                         <div class="divider"></div>

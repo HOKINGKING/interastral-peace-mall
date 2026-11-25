@@ -3,6 +3,7 @@ package com.ipc.mall.vo;
 import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.entity.OrderItem;
+import com.ipc.mall.entity.PaymentRecord;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -59,6 +60,17 @@ public class OrderDetailVO {
 
     private String trackingNo;
 
+    /** 支付流水（已支付订单才有，来自 payment_record） */
+    private boolean hasPayment;
+
+    private String paymentTransactionNo;
+
+    private String paymentMethod;
+
+    private String paymentTimeText;
+
+    private String paymentAmountText;
+
     private List<TimelineNode> timeline = new ArrayList<>();
 
     private boolean canPay;
@@ -111,6 +123,24 @@ public class OrderDetailVO {
 
         vo.setTimeline(timelineOf(order));
         return vo;
+    }
+
+    /**
+     * 填充支付流水：只有支付成功且流水存在时才展示，历史订单缺流水时页面不显示该区块。
+     */
+    public void applyPayment(PaymentRecord payment) {
+        if (payment == null) {
+            return;
+        }
+        this.hasPayment = true;
+        this.paymentTransactionNo = payment.getTransactionNo();
+        this.paymentMethod = methodDesc(payment.getPayMethod());
+        this.paymentTimeText = format(payment.getPayTime());
+        this.paymentAmountText = OrderItemVO.text(payment.getAmount());
+    }
+
+    private static String methodDesc(String method) {
+        return PaymentRecord.METHOD_MOCK.equals(method) ? "模拟支付" : method;
     }
 
     /**

@@ -1,5 +1,5 @@
 -- Interastral Peace Mall（星际和平商城）数据库表结构
--- 依据：docs/PRD.md §7 数据模型（10 张业务表 + 2 张辅助表）
+-- 依据：docs/PRD.md §7 数据模型（11 张业务表 + 2 张辅助表）
 -- 适用：MySQL 8.0.16+ / 8.4，InnoDB，utf8mb4 / utf8mb4_general_ci。
 -- 用法：先执行本文件，再执行 db/data.sql。
 -- 在空库中首次执行；不 DROP、不清空、不覆盖已有表；已有同名表会报错，不要用 --force 跳过。
@@ -206,7 +206,30 @@ CREATE TABLE order_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='订单明细（商品快照）';
 
 -- ============================================================
--- 10. feedback：投诉与反馈，type 区分，投诉绑订单（PRD §7.3 / §8.4）
+-- 10. payment_record：支付流水，一单一成功流水（PRD §5.12 / §7.3）
+-- ============================================================
+CREATE TABLE payment_record (
+    id             BIGINT        NOT NULL AUTO_INCREMENT,
+    order_id       BIGINT        NOT NULL COMMENT '订单 id，一单最多一条成功流水',
+    order_no       VARCHAR(32)   NOT NULL COMMENT '订单号快照，对账不必回查 orders',
+    account_id     BIGINT        NOT NULL COMMENT '支付用户',
+    amount         DECIMAL(10,2) NOT NULL COMMENT '支付金额（订单应付快照）',
+    pay_method     VARCHAR(20)   NOT NULL DEFAULT 'MOCK' COMMENT 'MOCK 模拟支付',
+    status         VARCHAR(20)   NOT NULL DEFAULT 'SUCCESS' COMMENT 'SUCCESS 支付成功',
+    transaction_no VARCHAR(64)   NOT NULL COMMENT '支付流水号，唯一',
+    pay_time       DATETIME      NOT NULL,
+    deleted        TINYINT       NOT NULL DEFAULT 0,
+    create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_payment_order (order_id),
+    UNIQUE KEY uk_payment_transaction (transaction_no),
+    KEY idx_payment_account_time (account_id, pay_time),
+    CONSTRAINT ck_payment_amount CHECK (amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='支付流水';
+
+-- ============================================================
+-- 11. feedback：投诉与反馈，type 区分，投诉绑订单（PRD §7.3 / §8.4）
 -- ============================================================
 CREATE TABLE feedback (
     id             BIGINT       NOT NULL AUTO_INCREMENT,
@@ -236,7 +259,7 @@ CREATE TABLE feedback (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='投诉与反馈';
 
 -- ============================================================
--- 11. sys_oper_log：操作日志，无 update_time / deleted（PRD §7.3）
+-- 12. sys_oper_log：操作日志，无 update_time / deleted（PRD §7.3）
 -- ============================================================
 CREATE TABLE sys_oper_log (
     id             BIGINT       NOT NULL AUTO_INCREMENT,
@@ -259,7 +282,7 @@ CREATE TABLE sys_oper_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='操作日志';
 
 -- ============================================================
--- 12. sys_check：环境自检（辅助表，PRD §7.2）
+-- 13. sys_check：环境自检（辅助表，PRD §7.2）
 -- ============================================================
 CREATE TABLE sys_check (
     id          BIGINT      NOT NULL AUTO_INCREMENT,

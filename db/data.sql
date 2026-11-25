@@ -117,12 +117,20 @@ INSERT INTO order_item (order_id, item_id, product_id, product_name, spec, price
     (4, 5, 3, '舰桥模型 · 纪念版',   '纪念版 · 标准',     299.00, 1, NULL, NOW() - INTERVAL 27 HOUR),
     (5, 6, 4, '驾驶员徽章套装（6 枚）', '6 枚装',           39.00, 2, NULL, NOW() - INTERVAL 15 MINUTE);
 
--- ===== 9. 购物车（xingye 当前选购）=====
+-- ===== 9. 支付流水（对应上面已支付的三笔订单）=====
+INSERT INTO payment_record
+    (id, order_id, order_no, account_id, amount, pay_method, status, transaction_no, pay_time, create_time)
+VALUES
+    (1, 2, '20261116102133', 1, 129.00, 'MOCK', 'SUCCESS', 'PAY20261116102133', NOW() - INTERVAL 30 HOUR, NOW() - INTERVAL 30 HOUR),
+    (2, 4, '20261117084412', 1, 299.00, 'MOCK', 'SUCCESS', 'PAY20261117084412', NOW() - INTERVAL 26 HOUR, NOW() - INTERVAL 26 HOUR),
+    (3, 5, '20261117201948', 2,  78.00, 'MOCK', 'SUCCESS', 'PAY20261117201948', NOW() - INTERVAL 8 MINUTE, NOW() - INTERVAL 8 MINUTE);
+
+-- ===== 10. 购物车（xingye 当前选购）=====
 INSERT INTO cart (account_id, item_id, quantity) VALUES
     (1, 6, 2),
     (1, 8, 1);
 
--- ===== 10. 投诉与反馈（与原型 FEEDBACKS 一致）=====
+-- ===== 11. 投诉与反馈（与原型 FEEDBACKS 一致）=====
 INSERT INTO feedback
     (type, account_id, order_id, category, content, user_note, contact, status,
      reply, reply_admin_id, reply_time, close_reason, create_time)
@@ -139,7 +147,7 @@ VALUES
      '13800000001', 'PENDING',
      NULL, NULL, NULL, NULL, NOW() - INTERVAL 4 HOUR);
 
--- ===== 11. 操作日志示例 =====
+-- ===== 12. 操作日志示例 =====
 INSERT INTO sys_oper_log
     (admin_id, admin_name, module, action, target_id, request_uri, request_method, request_params,
      ip, success, cost_ms, create_time)

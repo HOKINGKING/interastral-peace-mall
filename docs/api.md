@@ -1,7 +1,7 @@
 # 星际和平商城 · 接口约定（API Contract）
 
 > 依据 `docs/PRD.md` §10 导出，是前后端联调的唯一接口基准。
-> 版本：v1.1 ｜ 日期：2026-11-19 ｜ 手工维护（未引入 Swagger，见 PRD §14.2 已知限制 #6）。
+> 版本：v1.2 ｜ 日期：2026-11-25 ｜ 手工维护（未引入 Swagger，见 PRD §14.2 已知限制 #6）。
 > 修改接口时须同步更新本文，并回写 PRD 附录 C 变更记录。
 
 ---
@@ -92,12 +92,14 @@
 | F24 | GET | `/order/checkout` | 是 | `itemId`+`quantity`（立即购买）或 `cartIds`（购物车结算，逗号分隔） | 确认订单视图：商品明细/地址/订单备注输入/运费/应付；生成 `submitToken` 存 Session 并下发 |
 | F25 | POST | `/order/submit` | 是 | `submitToken`、`addressId`、`cartIds` 或 `itemId`+`quantity`、`remark`（≤200） | 成功 302 到 `/order/{id}/pay`；失败回填（3004 地址 / 2001 下架 / 2002 库存 / 3005 空购物车 / 3006 重复提交 / 400 备注超长） |
 | F26 | GET | `/order/{id}/pay` | 是 | `id` | 支付页视图：订单号/应付/倒计时 |
-| F27 | POST | `/order/{id}/pay` | 是 | `id` | 成功 302 到支付成功；仅 `PENDING_PAYMENT`；幂等：已 `PAID` 直接跳成功页 |
+| F27 | POST | `/order/{id}/pay` | 是 | `id` | 成功 302 到订单详情；仅 `PENDING_PAYMENT`；置 `PAID`、写 `pay_time`、累加 `product.sales`、写一条 `payment_record`；幂等：已 `PAID` 直接返回，不重复写流水 |
 | F28 | POST | `/order/{id}/cancel` | 是 | `id` | 302；置 `CANCELLED`、写 `cancel_time`、回补库存；仅 `PENDING_PAYMENT` |
 | F29 | GET | `/order/list` | 是 | `status`（Tab）、`page` | 订单列表视图：订单号/首件图+名/件数/总额/状态/操作按钮（终态订单带「删除订单」） |
-| F30 | GET | `/order/{id}` | 是 | `id` | 订单详情视图：明细/收货/备注/金额/状态时间线/物流；非本人返回 3003/404 |
+| F30 | GET | `/order/{id}` | 是 | `id` | 订单详情视图：明细/收货/备注/金额/状态时间线/物流/支付流水（流水号、方式、金额、时间）；非本人返回 3003/404 |
 | F31 | POST | `/order/{id}/receive` | 是 | `id` | 302；置 `COMPLETED`、写 `finish_time`；仅 `SHIPPED` |
 | F37 | DELETE | `/order/{id}` | 是 | `id` | `Result<Void>`；仅 `CANCELLED`/`COMPLETED` 可删（逻辑删除，不回补库存），其余 3002 |
+
+> 支付流水 `payment_record`：`order_id`、`order_no`、`account_id`、`amount`、`pay_method`（`MOCK`）、`status`（`SUCCESS`）、`transaction_no`（`PAY + orderNo`）、`pay_time`；`order_id` 与 `transaction_no` 均唯一，随支付成功与订单状态同一事务写入。
 
 ### 2.6 投诉与反馈（F32–F36）
 
