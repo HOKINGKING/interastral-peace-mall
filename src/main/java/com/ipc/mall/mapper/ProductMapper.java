@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ipc.mall.dto.ProductQuery;
 import com.ipc.mall.entity.Product;
+import com.ipc.mall.vo.AdminProductRowVO;
 import com.ipc.mall.vo.ProductCardVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,9 +39,35 @@ public interface ProductMapper extends BaseMapper<Product> {
                                         @Param("categoryIds") List<Long> categoryIds);
 
     /**
+     * 后台 SPU 列表（PRD §6.3）：不过滤上下架、不过滤分类可见性，
+     * 聚合出最低价 / 销量 / SKU 数 / 总库存，按更新时间倒序。
+     */
+    IPage<AdminProductRowVO> selectAdminPage(IPage<AdminProductRowVO> page,
+                                             @Param("keyword") String keyword,
+                                             @Param("categoryIds") List<Long> categoryIds,
+                                             @Param("status") Integer status);
+
+    /**
      * 销量累加（PRD §7.6）：只在订单 PENDING_PAYMENT → PAID 的同一事务里调用，
      * 状态条件更新成功才累加，天然只加一次；取消/关单不回退。
      */
     @Update("UPDATE product SET sales = sales + #{qty} WHERE id = #{productId}")
     int increaseSales(@Param("productId") Long productId, @Param("qty") Integer qty);
+
+    /**
+     * 后台编辑 SPU：整行覆盖（品牌/短描述/详情允许被清空，所以不用 updateById 跳过 null）。
+     * 影响行数 0 说明商品已被删除。
+     */
+    @Update("UPDATE product SET category_id = #{p.categoryId}, name = #{p.name}, brand = #{p.brand}, "
+            + "descn = #{p.descn}, detail = #{p.detail}, main_image = #{p.mainImage}, images = #{p.images}, "
+            + "specs = #{p.specs}, status = #{p.status}, update_time = #{updateTime} "
+            + "WHERE id = #{p.id} AND deleted = 0")
+    int updateFields(@Param("p") Product product, @Param("updateTime") LocalDateTime updateTime);
+
+    /** A12 上下架：只改 status，不碰其它字段 */
+    @Update("UPDATE product SET status = #{status}, update_time = #{updateTime} "
+            + "WHERE id = #{id} AND deleted = 0")
+    int updateStatus(@Param("id") Long id,
+                     @Param("status") Integer status,
+                     @Param("updateTime") LocalDateTime updateTime);
 }

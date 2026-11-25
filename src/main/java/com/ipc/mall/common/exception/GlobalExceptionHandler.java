@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -45,6 +46,13 @@ public class GlobalExceptionHandler {
         String message = fieldError == null ? "参数校验失败" : fieldError.getDefaultMessage();
         log.warn("参数绑定失败: {}", message);
         return Result.fail(ResultCode.FAIL.getCode(), message);
+    }
+
+    /** 上传超过 Spring 限制（5MB）：按业务码 4001 返回，不要把 500 甩给页面 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("上传文件超过大小限制: {}", e.getMessage());
+        return Result.fail(ResultCode.UPLOAD_INVALID);
     }
 
     /**

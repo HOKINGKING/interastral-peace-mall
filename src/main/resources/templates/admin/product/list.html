@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('product')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('商品管理')}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1>商品管理</h1>
+                <p>SPU 维度管理：上下架影响前台可见性；SKU 的价格与库存决定能否下单</p>
+            </div>
+            <div class="row">
+                <a class="btn btn-primary btn-sm" th:href="@{/admin/product/form}">+ 新增商品</a>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel pad-sm mb-16">
+            <form class="row wrap" method="get" th:action="@{/admin/product}" style="gap:8px">
+                <input class="input" style="width:200px;height:32px" type="search" name="keyword"
+                       th:value="${keyword}" placeholder="商品名称" maxlength="60">
+                <select class="select" name="categoryId" style="width:200px;height:32px">
+                    <option value="">全部分类</option>
+                    <optgroup th:each="group : ${groups}" th:label="${group.root.name}">
+                        <option th:value="${group.root.id}"
+                                th:selected="${categoryId != null and categoryId == group.root.id}"
+                                th:text="|${group.root.name}（全部）|">一级分类</option>
+                        <option th:each="child : ${group.children}" th:value="${child.id}"
+                                th:selected="${categoryId != null and categoryId == child.id}"
+                                th:text="${child.name}">二级分类</option>
+                    </optgroup>
+                </select>
+                <select class="select" name="status" style="width:130px;height:32px">
+                    <option value="">全部状态</option>
+                    <option value="1" th:selected="${status != null and status == 1}">上架</option>
+                    <option value="0" th:selected="${status != null and status == 0}">已下架</option>
+                </select>
+                <button class="btn btn-sm" type="submit">查询</button>
+                <a class="btn btn-sm" th:href="@{/admin/product}">重置</a>
+                <span style="flex:1"></span>
+                <span class="small muted" th:text="|共 ${total} 个商品|">共 0 个商品</span>
+            </form>
+        </div>
+
+        <div class="panel">
+            <table class="table" th:if="${!#lists.isEmpty(products)}">
+                <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>分类</th>
+                    <th>最低价</th>
+                    <th>销量</th>
+                    <th>SKU</th>
+                    <th>总库存</th>
+                    <th>上架</th>
+                    <th>更新时间</th>
+                    <th class="right">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${products}" th:attr="data-product-id=${p.id}">
+                    <td>
+                        <div class="row">
+                            <img th:if="${p.mainImage != null and p.mainImage != ''}" th:src="${p.mainImage}"
+                                 th:alt="${p.name}"
+                                 style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex:0 0 38px">
+                            <span th:if="${p.mainImage == null or p.mainImage == ''}" class="ph"
+                                  style="width:38px;height:38px;font-size:16px;flex:0 0 38px"
+                                  th:text="${#strings.substring(p.name, 0, 1)}">星</span>
+                            <div>
+                                <a th:href="@{/admin/product/form/{id}(id=${p.id})}"
+                                   style="font-weight:600" th:text="${p.name}">商品名</a>
+                                <div class="small muted mono" th:text="|#${p.id}|">#1</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="muted small" th:text="${p.categoryName}">一级 / 二级</td>
+                    <td th:text="|¥${p.minPriceText}|">¥0.00</td>
+                    <td th:text="${p.sales}">0</td>
+                    <td th:text="${p.skuCount}">0</td>
+                    <td th:text="${p.totalStock}">0</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:checked="${p.onSale}"
+                                   th:attr="data-product-status=${p.id}">
+                            <span></span>
+                        </label>
+                    </td>
+                    <td class="small muted" th:text="${p.updateTimeText}">2026-11-11 10:00</td>
+                    <td class="right">
+                        <div class="actions">
+                            <a class="btn btn-sm" th:href="@{/admin/item(productId=${p.id})}">SKU</a>
+                            <a class="btn btn-sm" th:href="@{/admin/product/form/{id}(id=${p.id})}">编辑</a>
+                            <button class="btn btn-sm btn-danger" type="button"
+                                    th:attr="data-delete-product=${p.id},data-product-name=${p.name}">删除</button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(products)}">
+                <div class="icon">📦</div>
+                <div>没有匹配的商品</div>
+                <div class="small muted mt-8">换个筛选条件，或新增一个商品</div>
+            </div>
+        </div>
+
+        <div th:replace="~{front/fragments/pagination :: pager(${pagination})}"></div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

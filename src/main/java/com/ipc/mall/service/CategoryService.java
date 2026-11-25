@@ -17,6 +17,12 @@ public interface CategoryService {
     /** 一级分类 + 其下二级分类，按 sort、id 升序，仅 visible=1 */
     List<CategoryGroupVO> visibleGroups();
 
+    /**
+     * 全部分类（含隐藏），一级 + 其二级，后台下拉/筛选用。
+     * 后台要能管理隐藏分类，所以不能复用 {@link #visibleGroups()}。
+     */
+    List<CategoryGroupVO> allGroups();
+
     /** 按 id 查未删除的分类 */
     Optional<Category> find(Long id);
 

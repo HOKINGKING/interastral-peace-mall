@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('item')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top(${'SKU 管理 / ' + pageTitle})}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1 th:text="${pageTitle}">新增 SKU</h1>
+                <p th:text="|所属商品：${product.name}|">所属商品</p>
+            </div>
+            <div class="row">
+                <a class="btn btn-sm" th:href="@{/admin/item(productId=${product.id})}">返回 SKU 列表</a>
+            </div>
+        </div>
+
+        <div class="panel pad" style="max-width:640px">
+            <form th:action="@{/admin/item/save}" method="post"
+                  data-admin-form th:attr="data-redirect=|/admin/item?productId=${product.id}|">
+                <input type="hidden" name="id" th:if="${skuForm.id != null}" th:value="${skuForm.id}">
+                <input type="hidden" name="productId" th:value="${product.id}">
+                <input type="hidden" name="version" th:if="${skuForm.version != null}"
+                       th:value="${skuForm.version}">
+
+                <div class="field">
+                    <label>规格<span class="req">*</span></label>
+                    <input class="input" type="text" name="spec" maxlength="50"
+                           th:value="${skuForm.spec}" placeholder="如：500ml 星白">
+                    <div class="help">同一商品内规格不能重复</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <label>价格<span class="req">*</span></label>
+                        <input class="input" type="number" step="0.01" min="0.01" max="99999.99"
+                               name="price" th:value="${skuForm.price}" placeholder="0.01–99999.99">
+                    </div>
+                    <div class="field">
+                        <label>库存<span class="req">*</span></label>
+                        <input class="input" type="number" step="1" min="0" max="999999"
+                               name="stock" th:value="${skuForm.stock}" placeholder="0–999999">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>规格图片</label>
+                    <div class="row" style="gap:8px">
+                        <input class="input" type="text" name="image" maxlength="255" style="flex:1"
+                               th:value="${skuForm.image}" placeholder="选填，空则用商品主图">
+                        <button type="button" class="btn btn-sm" data-upload-target="input[name=image]">
+                            上传
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <button class="btn btn-primary" type="submit">保存</button>
+                    <a class="btn" th:href="@{/admin/item(productId=${product.id})}">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

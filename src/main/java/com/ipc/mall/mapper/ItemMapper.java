@@ -5,6 +5,8 @@ import com.ipc.mall.entity.Item;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+import java.time.LocalDateTime;
+
 /** 商品 SKU Mapper */
 public interface ItemMapper extends BaseMapper<Item> {
 
@@ -23,4 +25,18 @@ public interface ItemMapper extends BaseMapper<Item> {
      */
     @Update("UPDATE item SET stock = stock + #{qty}, version = version + 1 WHERE id = #{id}")
     int restoreStock(@Param("id") Long id, @Param("qty") Integer qty);
+
+    /**
+     * 后台编辑 SKU：整行覆盖 + 乐观锁（PRD §6.3「改库存需校验 version 一致」）。
+     * 影响行数 0 = 已被并发修改或不属于该 SPU 或已删除。
+     */
+    @Update("UPDATE item SET spec = #{i.spec}, price = #{i.price}, stock = #{i.stock}, image = #{i.image}, "
+            + "version = version + 1, update_time = #{updateTime} "
+            + "WHERE id = #{i.id} AND product_id = #{i.productId} AND version = #{i.version} AND deleted = 0")
+    int updateSkuWithVersion(@Param("i") Item item, @Param("updateTime") LocalDateTime updateTime);
+
+    /** 后台删除 SPU 时一并逻辑删除它的 SKU，避免孤儿行在别处出现 */
+    @Update("UPDATE item SET deleted = 1, update_time = #{updateTime} "
+            + "WHERE product_id = #{productId} AND deleted = 0")
+    int logicDeleteByProduct(@Param("productId") Long productId, @Param("updateTime") LocalDateTime updateTime);
 }

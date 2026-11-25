@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('item')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('SKU 管理')}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1>SKU 管理</h1>
+                <p>
+                    商品 <b th:text="${product.name}">商品名</b>
+                    <span class="small muted mono" th:text="|#${product.id}|">#1</span>
+                    · 规格、价格与库存
+                </p>
+            </div>
+            <div class="row">
+                <a class="btn btn-primary btn-sm"
+                   th:href="@{/admin/item/form(productId=${product.id})}">+ 新增 SKU</a>
+                <a class="btn btn-sm" th:href="@{/admin/product}">返回商品列表</a>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel">
+            <table class="table" th:if="${!#lists.isEmpty(items)}">
+                <thead>
+                <tr>
+                    <th>规格</th>
+                    <th>价格</th>
+                    <th>库存</th>
+                    <th>版本</th>
+                    <th>图片</th>
+                    <th class="right">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sku : ${items}" th:attr="data-sku-row-id=${sku.id}">
+                    <td><b th:text="${sku.spec}">规格</b></td>
+                    <td th:text="|¥${#numbers.formatDecimal(sku.price, 1, 2)}|">¥0.00</td>
+                    <td th:text="${sku.stock}">0</td>
+                    <td class="mono small" th:text="${sku.version}">0</td>
+                    <td class="small muted">
+                        <span th:if="${sku.image == null}">用主图</span>
+                        <a th:if="${sku.image != null}" th:href="${sku.image}" target="_blank"
+                           rel="noopener" th:text="${sku.image}">图片</a>
+                    </td>
+                    <td class="right">
+                        <div class="actions">
+                            <a class="btn btn-sm"
+                               th:href="@{/admin/item/form/{id}(id=${sku.id},productId=${product.id})}">编辑</a>
+                            <button class="btn btn-sm btn-danger" type="button"
+                                    th:attr="data-delete-sku=${sku.id}">删除</button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(items)}">
+                <div class="icon">🧩</div>
+                <div>这个商品还没有 SKU</div>
+                <div class="small muted mt-8">每个商品至少需要 1 个可售 SKU，先新增一个吧</div>
+                <a class="btn btn-sm btn-primary mt-16"
+                   th:href="@{/admin/item/form(productId=${product.id})}">新增 SKU</a>
+            </div>
+        </div>
+
+        <p class="help mt-16">
+            每个商品至少保留 1 个 SKU；修改库存会做版本校验，冲突时提示刷新后重试。
+        </p>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

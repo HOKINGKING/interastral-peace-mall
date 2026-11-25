@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('product')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top(${pageTitle})}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1 th:text="${pageTitle}">商品编辑</h1>
+                <p>基本信息、主图与相册、商品参数、SKU 子表一次性保存</p>
+            </div>
+            <div class="row">
+                <a class="btn btn-sm" th:href="@{/admin/product}">返回列表</a>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <form th:attr="data-product-id=${product != null ? product.id : ''}" data-product-form data-redirect="/admin/product">
+            <div class="row" style="align-items:flex-start;gap:18px">
+                <div class="content-main">
+                    <!-- 基本信息 -->
+                    <div class="panel pad">
+                        <b>基本信息</b>
+                        <div class="grid-2 mt-16">
+                            <div class="field">
+                                <label>所属分类<span class="req">*</span></label>
+                                <select class="select" data-product-field="categoryId">
+                                    <option value="">请选择二级分类</option>
+                                    <optgroup th:each="group : ${groups}" th:label="${group.root.name}">
+                                        <option th:each="child : ${group.children}" th:value="${child.id}"
+                                                th:selected="${product != null and product.categoryId == child.id}"
+                                                th:text="${child.name}">二级分类</option>
+                                    </optgroup>
+                                </select>
+                                <div class="help">只能挂在二级分类下</div>
+                            </div>
+                            <div class="field">
+                                <label>商品名称<span class="req">*</span></label>
+                                <input class="input" type="text" maxlength="60" data-product-field="name"
+                                       th:value="${product?.name}" placeholder="≤60 字">
+                            </div>
+                            <div class="field">
+                                <label>品牌</label>
+                                <input class="input" type="text" maxlength="30" data-product-field="brand"
+                                       th:value="${product?.brand}" placeholder="≤30 字">
+                            </div>
+                            <div class="field">
+                                <label>上架状态</label>
+                                <label class="switch" style="margin-top:8px">
+                                    <input type="checkbox" data-product-field="status"
+                                           th:checked="${product == null or product.status == 1}">
+                                    <span></span>
+                                </label>
+                                <div class="help">下架后前台列表消失、详情显示已下架、不可加购</div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>短描述</label>
+                            <input class="input" type="text" maxlength="200" data-product-field="descn"
+                                   th:value="${product?.descn}" placeholder="≤200 字，展示在列表与详情顶部">
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                            <label>商品详情</label>
+                            <textarea class="textarea" data-product-field="detail"
+                                      th:text="${product?.detail}" placeholder="纯文本即可"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 主图与相册 -->
+                    <div class="panel pad mt-16">
+                        <div class="between">
+                            <b>主图与相册</b>
+                            <span class="small muted">jpg / png / webp，单张 ≤5MB，相册最多 5 张</span>
+                        </div>
+                        <div class="row wrap mt-16" style="gap:14px;align-items:flex-start">
+                            <div style="width:120px">
+                                <div class="ph" style="width:120px;height:120px;font-size:32px"
+                                     data-main-preview>
+                                    <img th:if="${product != null and product.mainImage != null}"
+                                         th:src="${product.mainImage}" alt="主图"
+                                         style="width:100%;height:100%;object-fit:cover;border-radius:8px">
+                                    <span th:unless="${product != null and product.mainImage != null}">主图</span>
+                                </div>
+                                <input type="hidden" data-product-field="mainImage" th:value="${product?.mainImage}">
+                                <button type="button" class="btn btn-sm btn-block mt-8"
+                                        data-upload-target="mainImage">上传主图</button>
+                            </div>
+
+                            <div style="flex:1;min-width:260px">
+                                <div class="row wrap" data-gallery style="gap:8px;min-height:88px">
+                                    <span class="chip" th:each="url : ${gallery}" th:attr="data-url=${url}">
+                                        <img th:src="${url}" alt="相册"
+                                             style="height:22px;vertical-align:middle;margin-right:4px;border-radius:4px">
+                                        <button type="button" class="chip-remove" data-gallery-remove>×</button>
+                                    </span>
+                                </div>
+                                <button type="button" class="btn btn-sm mt-8" data-upload-target="gallery">
+                                    + 上传相册图
+                                </button>
+                                <div class="help mt-8">
+                                    相册以逗号分隔存 <span class="mono">product.images</span>，首张建议与主图一致
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品参数 -->
+                    <div class="panel pad mt-16">
+                        <div class="between">
+                            <b>商品参数</b>
+                            <span class="small muted">key-value，最多 8 组，存 <span class="mono">product.specs</span> JSON</span>
+                        </div>
+                        <table class="table mt-16">
+                            <thead>
+                            <tr>
+                                <th>参数名</th>
+                                <th>参数值</th>
+                                <th class="right">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody data-specs>
+                            <tr data-spec-row th:each="spec : ${specs}">
+                                <td><input class="input" maxlength="30" data-spec-key th:value="${spec.key}"></td>
+                                <td><input class="input" maxlength="100" data-spec-value th:value="${spec.value}"></td>
+                                <td class="right">
+                                    <button type="button" class="btn btn-sm btn-danger" data-spec-remove>删除</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-sm mt-8" data-spec-add>+ 新增参数</button>
+                    </div>
+
+                    <!-- SKU 子表 -->
+                    <div class="panel pad mt-16">
+                        <div class="between">
+                            <b>SKU 子表</b>
+                            <a class="btn btn-sm" th:if="${product != null}"
+                               th:href="@{/admin/item(productId=${product.id})}">SKU 管理</a>
+                        </div>
+                        <table class="table mt-16">
+                            <thead>
+                            <tr>
+                                <th>规格</th>
+                                <th style="width:120px">价格</th>
+                                <th style="width:110px">库存</th>
+                                <th>图片</th>
+                                <th style="width:60px">版本</th>
+                                <th class="right" style="width:80px">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody data-skus>
+                            <tr data-sku-row th:each="sku : ${items}">
+                                <td>
+                                    <input type="hidden" data-sku-id th:value="${sku.id}">
+                                    <input type="hidden" data-sku-version th:value="${sku.version}">
+                                    <input class="input" maxlength="50" data-sku-spec th:value="${sku.spec}">
+                                </td>
+                                <td><input class="input" type="number" step="0.01" min="0.01"
+                                           data-sku-price th:value="${sku.price}"></td>
+                                <td><input class="input" type="number" min="0" step="1"
+                                           data-sku-stock th:value="${sku.stock}"></td>
+                                <td><input class="input" maxlength="255" data-sku-image
+                                           th:value="${sku.image}" placeholder="选填"></td>
+                                <td class="mono small" th:text="${sku.version}">0</td>
+                                <td class="right">
+                                    <button type="button" class="btn btn-sm btn-danger" data-sku-remove>删除</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-sm mt-8" data-sku-add>+ 新增 SKU</button>
+                        <div class="help mt-8">
+                            规格同 SPU 内唯一；每个商品至少保留 1 个 SKU；改库存会做版本校验，冲突时提示刷新。
+                        </div>
+                    </div>
+                </div>
+
+                <aside style="width:300px;flex:0 0 300px">
+                    <div class="panel pad">
+                        <b>保存与删除</b>
+                        <p class="small muted mt-8">
+                            存在未完结订单（待支付 / 已支付 / 已发货）引用其 SKU 时禁止删除（2005）；
+                            删除为逻辑删除，订单明细走快照不受影响。
+                        </p>
+                    </div>
+                    <div class="panel pad mt-16">
+                        <button class="btn btn-primary btn-block" type="submit">保存商品</button>
+                        <button class="btn btn-danger btn-block mt-8" type="button"
+                                th:if="${product != null}" th:attr="data-delete-product=${product.id}">
+                            删除商品
+                        </button>
+                        <a class="btn btn-block mt-8" th:href="@{/admin/product}">取消</a>
+                    </div>
+                </aside>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SKU 新增行模板（JS 克隆后插入 tbody） -->
+<template id="skuRowTemplate">
+    <tr data-sku-row>
+        <td>
+            <input type="hidden" data-sku-id>
+            <input type="hidden" data-sku-version value="0">
+            <input class="input" maxlength="50" data-sku-spec placeholder="如：500ml 星白">
+        </td>
+        <td><input class="input" type="number" step="0.01" min="0.01" data-sku-price placeholder="0.00"></td>
+        <td><input class="input" type="number" min="0" step="1" data-sku-stock value="0"></td>
+        <td><input class="input" maxlength="255" data-sku-image placeholder="选填"></td>
+        <td class="mono small">0</td>
+        <td class="right">
+            <button type="button" class="btn btn-sm btn-danger" data-sku-remove>删除</button>
+        </td>
+    </tr>
+</template>
+
+<!-- 参数行模板 -->
+<template id="specRowTemplate">
+    <tr data-spec-row>
+        <td><input class="input" maxlength="30" data-spec-key placeholder="如：材质"></td>
+        <td><input class="input" maxlength="100" data-spec-value placeholder="如：316 不锈钢"></td>
+        <td class="right"><button type="button" class="btn btn-sm btn-danger" data-spec-remove>删除</button></td>
+    </tr>
+</template>
+
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

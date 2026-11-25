@@ -35,7 +35,18 @@ public class CategoryServiceImpl implements CategoryService {
                 .eq(Category::getVisible, VISIBLE)
                 .orderByAsc(Category::getSort)
                 .orderByAsc(Category::getId));
+        return group(all);
+    }
 
+    @Override
+    public List<CategoryGroupVO> allGroups() {
+        List<Category> all = categoryMapper.selectList(new LambdaQueryWrapper<Category>()
+                .orderByAsc(Category::getSort)
+                .orderByAsc(Category::getId));
+        return group(all);
+    }
+
+    private List<CategoryGroupVO> group(List<Category> all) {
         List<Category> roots = new ArrayList<>();
         Map<Long, List<Category>> childrenByParent = new HashMap<>();
         for (Category category : all) {

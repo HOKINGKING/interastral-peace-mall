@@ -56,4 +56,49 @@
         </choose>
     </select>
 
+    <!--
+      后台 SPU 列表（PRD §6.3）
+      - 不过滤 p.status 与分类可见性：后台要能看到全部商品
+      - LEFT JOIN item：新建 SPU 还没有 SKU 时也要出现在列表里（skuCount=0）
+      - 分类筛选传「自身 + 子分类」（一级分类时由 Controller 展开）
+    -->
+    <select id="selectAdminPage" resultType="com.ipc.mall.vo.AdminProductRowVO">
+        SELECT p.id,
+               p.name,
+               p.main_image,
+               p.category_id,
+               CASE WHEN pc.id IS NULL THEN c.name ELSE CONCAT(pc.name, ' / ', c.name) END AS category_name,
+               p.sales,
+               p.status,
+               p.update_time,
+               MIN(i.price) AS min_price,
+               COALESCE(SUM(i.stock), 0) AS total_stock,
+               COUNT(i.id)  AS sku_count
+        FROM product p
+        JOIN category c ON c.id = p.category_id AND c.deleted = 0
+        LEFT JOIN category pc ON pc.id = c.parent_id AND pc.deleted = 0
+        LEFT JOIN item i ON i.product_id = p.id AND i.deleted = 0
+        WHERE p.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND p.name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <choose>
+            <when test="categoryIds != null and categoryIds.size() > 0">
+                AND p.category_id IN
+                <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                    #{cid}
+                </foreach>
+            </when>
+            <when test="categoryIds != null">
+                AND 1 = 0
+            </when>
+        </choose>
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        GROUP BY p.id, p.name, p.main_image, p.category_id, c.name, pc.id, pc.name,
+                 p.sales, p.status, p.update_time, p.create_time
+        ORDER BY p.update_time DESC, p.id DESC
+    </select>
+
 </mapper>
