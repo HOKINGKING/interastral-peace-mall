@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('order')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('订单管理')}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1>订单管理</h1>
+                <p>按订单号 / 用户 / 状态 / 下单时间筛选；发货只对「已支付」开放</p>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel pad-sm mb-16">
+            <form class="row wrap" method="get" th:action="@{/admin/order}" style="gap:8px">
+                <input class="input" style="width:190px;height:32px" type="search" name="orderNo"
+                       th:value="${orderNo}" placeholder="订单号" maxlength="32">
+                <input class="input" style="width:150px;height:32px" type="search" name="username"
+                       th:value="${username}" placeholder="用户名 / 昵称" maxlength="20">
+                <select class="select" name="status" style="width:120px;height:32px">
+                    <option value="">全部状态</option>
+                    <option th:each="opt : ${statusOptions}" th:value="${opt.code}"
+                            th:selected="${status == opt.code}" th:text="${opt.label}">状态</option>
+                </select>
+                <input class="input" style="width:150px;height:32px" type="date" name="dateFrom"
+                       th:value="${dateFrom}" title="下单开始日期">
+                <span class="small muted">至</span>
+                <input class="input" style="width:150px;height:32px" type="date" name="dateTo"
+                       th:value="${dateTo}" title="下单结束日期">
+                <button class="btn btn-sm" type="submit">查询</button>
+                <a class="btn btn-sm" th:href="@{/admin/order}">重置</a>
+                <span style="flex:1"></span>
+                <span class="small muted" th:text="|共 ${total} 笔订单|">共 0 笔订单</span>
+            </form>
+        </div>
+
+        <div class="panel">
+            <table class="table" th:if="${!#lists.isEmpty(orders)}">
+                <thead>
+                <tr>
+                    <th>订单号</th>
+                    <th>用户</th>
+                    <th>件数</th>
+                    <th>应付</th>
+                    <th>状态</th>
+                    <th>下单时间</th>
+                    <th class="right">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orders}" th:attr="data-order-id=${o.id}">
+                    <td>
+                        <a class="mono" style="font-weight:600"
+                           th:href="@{/admin/order/{id}(id=${o.id})}" th:text="${o.orderNo}">20261117201501</a>
+                    </td>
+                    <td>
+                        <span th:text="${o.displayName}">星野</span>
+                        <span class="small muted mono" th:if="${o.username != null}"
+                              th:text="|@${o.username}|">@xingye</span>
+                    </td>
+                    <td th:text="${o.itemCount}">1</td>
+                    <td th:text="|¥${o.totalAmountText}|">¥0.00</td>
+                    <td><span class="badge" th:classappend="${o.statusClass}" th:text="${o.statusDesc}">已支付</span></td>
+                    <td class="small muted" th:text="${o.createTimeText}">2026-11-17 20:15</td>
+                    <td class="right">
+                        <div class="actions">
+                            <a class="btn btn-sm" th:href="@{/admin/order/{id}(id=${o.id})}">详情</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(orders)}">
+                <div class="icon">🧾</div>
+                <div>没有匹配的订单</div>
+                <div class="small muted mt-8">换个筛选条件试试</div>
+            </div>
+        </div>
+
+        <div th:replace="~{front/fragments/pagination :: pager(${pagination})}"></div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 package com.ipc.mall.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ipc.mall.entity.Order;
+import com.ipc.mall.vo.AdminOrderRowVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
@@ -42,4 +44,39 @@ public interface OrderMapper extends BaseMapper<Order> {
                       @Param("accountId") Long accountId,
                       @Param("finishTime") LocalDateTime finishTime,
                       @Param("updateTime") LocalDateTime updateTime);
+
+    /**
+     * T5 卖家发货：只允许 PAID → SHIPPED，写 ship_time / 物流公司 / 单号。
+     * 后台没有 account_id 维度（单一角色），重复发货靠 status='PAID' 条件兜住。
+     */
+    @Update("UPDATE orders SET status = 'SHIPPED', courier_company = #{courierCompany}, "
+            + "tracking_no = #{trackingNo}, ship_time = #{shipTime}, update_time = #{updateTime} "
+            + "WHERE id = #{id} AND status = 'PAID' AND deleted = 0")
+    int markShipped(@Param("id") Long id,
+                    @Param("courierCompany") String courierCompany,
+                    @Param("trackingNo") String trackingNo,
+                    @Param("shipTime") LocalDateTime shipTime,
+                    @Param("updateTime") LocalDateTime updateTime);
+
+    /**
+     * A25 后台改收货信息：只动收货快照与备注，金额与明细锁定。
+     * 不影响状态机，任何未删除状态都可以改。
+     */
+    @Update("UPDATE orders SET receiver_name = #{receiverName}, receiver_phone = #{receiverPhone}, "
+            + "receiver_detail = #{receiverDetail}, remark = #{remark}, update_time = #{updateTime} "
+            + "WHERE id = #{id} AND deleted = 0")
+    int updateReceiver(@Param("id") Long id,
+                       @Param("receiverName") String receiverName,
+                       @Param("receiverPhone") String receiverPhone,
+                       @Param("receiverDetail") String receiverDetail,
+                       @Param("remark") String remark,
+                       @Param("updateTime") LocalDateTime updateTime);
+
+    /** 后台订单分页（A22）：按订单号 / 用户名 / 状态 / 下单时间区间筛选 */
+    IPage<AdminOrderRowVO> selectAdminPage(IPage<AdminOrderRowVO> page,
+                                           @Param("orderNo") String orderNo,
+                                           @Param("username") String username,
+                                           @Param("status") String status,
+                                           @Param("dateFrom") LocalDateTime dateFrom,
+                                           @Param("dateTo") LocalDateTime dateTo);
 }

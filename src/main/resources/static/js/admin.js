@@ -79,8 +79,8 @@
 
   // ------------------------------------------------------------------ 普通表单（form-encoded）
 
-  var simpleForm = document.querySelector('[data-admin-form]');
-  if (simpleForm) {
+  // 普通表单（form-encoded）：页面上可能有多个（如订单详情的发货 + 改收货信息）
+  document.querySelectorAll('[data-admin-form]').forEach(function (simpleForm) {
     simpleForm.addEventListener('submit', function (event) {
       event.preventDefault();
       var submit = simpleForm.querySelector('button[type="submit"]');
@@ -116,7 +116,7 @@
         toast('网络异常，请稍后再试');
       });
     });
-  }
+  });
 
   // ------------------------------------------------------------------ 图片上传
 
@@ -411,6 +411,29 @@
           toast(result.message || '商品已删除');
           setTimeout(function () {
             window.location.href = '/admin/product';
+          }, 500);
+          return;
+        }
+        toast((result && result.message) || '删除失败');
+      }).catch(function () {
+        toast('网络异常，请稍后再试');
+      });
+    });
+  });
+
+  // ------------------------------------------------------------------ 订单详情：删除订单
+
+  document.querySelectorAll('[data-delete-order]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var id = button.getAttribute('data-delete-order');
+      if (!window.confirm('删除后订单不再显示（逻辑删除，不回补库存），确定删除吗？')) {
+        return;
+      }
+      request('DELETE', '/admin/order/' + id).then(function (result) {
+        if (result && result.code === 200) {
+          toast(result.message || '订单已删除');
+          setTimeout(function () {
+            window.location.href = '/admin/order';
           }, 500);
           return;
         }

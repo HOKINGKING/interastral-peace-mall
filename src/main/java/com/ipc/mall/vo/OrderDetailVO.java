@@ -26,6 +26,9 @@ public class OrderDetailVO {
 
     private String orderNo;
 
+    /** 下单用户（后台详情展示用，前台为 null） */
+    private String username;
+
     private String status;
 
     private String statusDesc;
@@ -40,7 +43,19 @@ public class OrderDetailVO {
 
     private String receiverPhoneMasked;
 
+    /** 完整手机号：仅后台详情页的「修改收货信息」表单使用，前台为 null */
+    private String receiverPhoneRaw;
+
     private String receiverAddress;
+
+    /** 省市区与详细地址分开存：后台修改收货信息时只需要回填详细地址 */
+    private String receiverProvince;
+
+    private String receiverCity;
+
+    private String receiverDistrict;
+
+    private String receiverDetail;
 
     private String remark;
 
@@ -84,7 +99,13 @@ public class OrderDetailVO {
     private boolean canComplaint;
 
     public static OrderDetailVO of(Order order, List<OrderItem> lines) {
+        return of(order, lines, null);
+    }
+
+    /** 后台版本：多带一个下单用户名 */
+    public static OrderDetailVO of(Order order, List<OrderItem> lines, String username) {
         OrderDetailVO vo = new OrderDetailVO();
+        vo.setUsername(username);
         vo.setId(order.getId());
         vo.setOrderNo(order.getOrderNo());
         vo.setStatus(order.getStatus());
@@ -93,7 +114,13 @@ public class OrderDetailVO {
         vo.setCreateTimeText(format(order.getCreateTime()));
         vo.setReceiverName(order.getReceiverName());
         vo.setReceiverPhoneMasked(AccountProfileVO.maskPhone(order.getReceiverPhone()));
+        // 后台详情页要用完整手机号回填「修改收货信息」表单；前台走两参重载，这里保持 null
+        vo.setReceiverPhoneRaw(order.getReceiverPhone());
         vo.setReceiverAddress(joinAddress(order));
+        vo.setReceiverProvince(order.getReceiverProvince());
+        vo.setReceiverCity(order.getReceiverCity());
+        vo.setReceiverDistrict(order.getReceiverDistrict());
+        vo.setReceiverDetail(order.getReceiverDetail());
         vo.setRemark(order.getRemark());
         vo.setCourierCompany(order.getCourierCompany());
         vo.setTrackingNo(order.getTrackingNo());
