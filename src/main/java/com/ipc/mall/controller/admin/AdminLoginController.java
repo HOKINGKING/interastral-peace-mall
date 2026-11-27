@@ -1,9 +1,11 @@
 package com.ipc.mall.controller.admin;
 
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.constant.CaptchaScope;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.common.util.AuthWebUtils;
+import com.ipc.mall.common.util.OperLogContext;
 import com.ipc.mall.dto.LoginForm;
 import com.ipc.mall.service.AdminService;
 import com.ipc.mall.service.CaptchaService;
@@ -51,15 +53,18 @@ public class AdminLoginController {
     }
 
     @PostMapping("/login")
+    @OperLog(module = "认证", action = "后台登录", login = true)
     public String login(@Valid @ModelAttribute("adminLoginForm") LoginForm form,
                         BindingResult bindingResult,
                         HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
+            OperLogContext.markFailure(request, "登录参数校验失败");
             return "admin/login";
         }
 
         HttpSession session = request.getSession();
         if (!captchaService.verify(session, CaptchaScope.ADMIN, form.getCaptcha())) {
+            OperLogContext.markFailure(request, "验证码错误或已过期");
             bindingResult.rejectValue("captcha", "captcha.invalid", "验证码错误或已过期");
             return "admin/login";
         }
@@ -70,6 +75,7 @@ public class AdminLoginController {
             session.setAttribute(SessionKey.LOGIN_ADMIN, loginAdmin);
             return "redirect:" + safeAdminRedirect(form.getRedirect());
         } catch (BizException e) {
+            OperLogContext.markFailure(request, e.getMessage());
             bindingResult.reject("adminLogin.error", e.getMessage());
             return "admin/login";
         }

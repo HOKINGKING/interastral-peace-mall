@@ -1,6 +1,7 @@
 package com.ipc.mall.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.constant.AccountStatus;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.common.result.Result;
@@ -81,6 +82,7 @@ public class AdminAccountController {
 
     /** A20：保存昵称 / 手机号 / 状态 */
     @PostMapping("/admin/account/save")
+    @OperLog(module = "用户管理", action = "保存用户信息")
     @ResponseBody
     public Result<Void> save(@Valid @ModelAttribute("accountForm") AdminAccountForm accountForm,
                              BindingResult bindingResult) {
@@ -93,6 +95,7 @@ public class AdminAccountController {
 
     /** A21：重置密码（BCrypt 入库，旧密码立即失效） */
     @PostMapping("/admin/account/{id}/reset-password")
+    @OperLog(module = "用户管理", action = "重置密码")
     @ResponseBody
     public Result<Void> resetPassword(@PathVariable Long id,
                                       @Valid @ModelAttribute("resetPasswordForm") AdminResetPasswordForm form,

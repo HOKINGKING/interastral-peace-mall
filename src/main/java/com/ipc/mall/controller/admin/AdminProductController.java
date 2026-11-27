@@ -1,6 +1,7 @@
 package com.ipc.mall.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.util.PageUtils;
 import com.ipc.mall.dto.AdminProductForm;
@@ -107,6 +108,7 @@ public class AdminProductController {
 
     /** A11：保存 SPU + SKU（JSON 请求体） */
     @PostMapping("/admin/product/save")
+    @OperLog(module = "商品管理", action = "保存商品")
     @ResponseBody
     public Result<Void> save(@Valid @RequestBody AdminProductForm form) {
         boolean creating = form.getId() == null;
@@ -116,6 +118,7 @@ public class AdminProductController {
 
     /** A12：上下架 */
     @PostMapping("/admin/product/{id}/status")
+    @OperLog(module = "商品管理", action = "商品上下架")
     @ResponseBody
     public Result<Void> updateStatus(@PathVariable Long id, @RequestParam(required = false) Integer status) {
         productAdminService.updateStatus(id, status);
@@ -124,6 +127,7 @@ public class AdminProductController {
 
     /** A13：删除（有未完结订单返回 2005） */
     @DeleteMapping("/admin/product/{id}")
+    @OperLog(module = "商品管理", action = "删除商品")
     @ResponseBody
     public Result<Void> remove(@PathVariable Long id) {
         productAdminService.remove(id);

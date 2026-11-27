@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('log')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('操作日志')}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1>操作日志</h1>
+                <p>后台写操作与前后台登录的审计记录，只读；参数中的密码已脱敏为 ***</p>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel pad-sm mb-16">
+            <form class="row wrap" method="get" th:action="@{/admin/log}" style="gap:8px">
+                <select class="select" name="module" style="width:150px;height:32px">
+                    <option value="">全部模块</option>
+                    <option th:each="m : ${modules}" th:value="${m}"
+                            th:selected="${module != null and module == m}" th:text="${m}">模块</option>
+                </select>
+                <input class="input" style="width:150px;height:32px" type="search" name="adminName"
+                       th:value="${adminName}" placeholder="操作人" maxlength="20">
+                <input class="input" style="width:150px;height:32px" type="date" name="dateFrom"
+                       th:value="${dateFrom}" title="开始日期">
+                <span class="small muted">至</span>
+                <input class="input" style="width:150px;height:32px" type="date" name="dateTo"
+                       th:value="${dateTo}" title="结束日期">
+                <button class="btn btn-sm" type="submit">查询</button>
+                <a class="btn btn-sm" th:href="@{/admin/log}">重置</a>
+                <span style="flex:1"></span>
+                <span class="small muted" th:text="|共 ${total} 条日志|">共 0 条日志</span>
+            </form>
+        </div>
+
+        <div class="panel">
+            <table class="table" th:if="${!#lists.isEmpty(logs)}">
+                <thead>
+                <tr>
+                    <th>时间</th>
+                    <th>操作人</th>
+                    <th>模块 / 动作</th>
+                    <th>目标</th>
+                    <th>参数</th>
+                    <th>结果</th>
+                    <th class="right">耗时</th>
+                    <th>IP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${logs}" th:attr="data-log-id=${l.id}">
+                    <td class="small muted" style="white-space:nowrap" th:text="${l.createTimeText}">2026-11-27 13:00:00</td>
+                    <td>
+                        <span th:text="${l.adminName}">admin</span>
+                        <div class="small muted mono" th:if="${l.adminId != null and l.adminId > 0}"
+                             th:text="|#${l.adminId}|">#1</div>
+                    </td>
+                    <td>
+                        <span th:text="${l.module}">订单管理</span>
+                        <div class="small muted" th:text="${l.action}">发货</div>
+                    </td>
+                    <td class="small mono" th:text="${l.targetText}">#12</td>
+                    <td style="max-width:360px">
+                        <span class="small mono" th:if="${l.requestParams != null}"
+                              th:title="${l.requestParams}" th:text="${l.paramsPreview}">{}</span>
+                        <span class="small muted" th:if="${l.requestParams == null}">—</span>
+                        <div class="small" style="color:var(--danger);word-break:break-all"
+                             th:if="${l.failed and l.errorMsg != null}"
+                             th:title="${l.errorMsg}" th:text="${l.errorMsg}">失败原因</div>
+                    </td>
+                    <td>
+                        <span class="badge" th:classappend="${l.resultClass}" th:text="${l.resultDesc}">成功</span>
+                    </td>
+                    <td class="small muted right" th:text="${l.costText}">12 ms</td>
+                    <td class="small mono muted" th:text="${l.ip}">127.0.0.1</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(logs)}">
+                <div class="icon">📋</div>
+                <div>还没有操作日志</div>
+                <div class="small muted mt-8">执行一次后台写操作或登录后再来看</div>
+            </div>
+        </div>
+
+        <!-- 分页：与其它后台列表同一套 PageUtils 链接，单位换成「条日志」 -->
+        <div class="pagination" th:if="${pagination != null and pagination.totalPages > 1}">
+            <a th:if="${pagination.hasPrev}" th:href="${pagination.prevUrl}">上一页</a>
+            <span th:unless="${pagination.hasPrev}" class="disabled">上一页</span>
+
+            <th:block th:each="link : ${pagination.links}">
+                <span th:if="${link.ellipsis}" class="small muted" style="border:0;background:none">…</span>
+                <a th:unless="${link.ellipsis}" th:href="${link.url}"
+                   th:classappend="${link.current} ? 'active' : ''" th:text="${link.no}">1</a>
+            </th:block>
+
+            <a th:if="${pagination.hasNext}" th:href="${pagination.nextUrl}">下一页</a>
+            <span th:unless="${pagination.hasNext}" class="disabled">下一页</span>
+
+            <span class="small muted" style="border:0;background:none"
+                  th:text="|共 ${pagination.totalPages} 页 · ${pagination.total} 条日志|">共 1 页</span>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

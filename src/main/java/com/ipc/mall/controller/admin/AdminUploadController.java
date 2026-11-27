@@ -1,5 +1,6 @@
 package com.ipc.mall.controller.admin;
 
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.service.UploadService;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,7 @@ public class AdminUploadController {
     }
 
     @PostMapping("/admin/upload/image")
+    @OperLog(module = "商品管理", action = "上传图片")
     @ResponseBody
     public Result<String> upload(@RequestParam("file") MultipartFile file) {
         return Result.ok("上传成功", uploadService.storeImage(file));

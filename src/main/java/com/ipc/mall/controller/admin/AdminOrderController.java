@@ -1,6 +1,7 @@
 package com.ipc.mall.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.constant.OrderStatus;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.common.result.Result;
@@ -97,6 +98,7 @@ public class AdminOrderController {
 
     /** A24：发货（仅 PAID） */
     @PostMapping("/admin/order/{id}/ship")
+    @OperLog(module = "订单管理", action = "发货")
     @ResponseBody
     public Result<Void> ship(@PathVariable Long id,
                              @Valid @ModelAttribute("shipForm") ShipForm shipForm,
@@ -110,6 +112,7 @@ public class AdminOrderController {
 
     /** A25：修改收货信息与备注 */
     @PostMapping("/admin/order/{id}/receiver")
+    @OperLog(module = "订单管理", action = "修改收货信息")
     @ResponseBody
     public Result<Void> updateReceiver(@PathVariable Long id,
                                        @Valid @ModelAttribute("receiverForm") ReceiverForm receiverForm,
@@ -123,6 +126,7 @@ public class AdminOrderController {
 
     /** A26：删除（仅终态） */
     @DeleteMapping("/admin/order/{id}")
+    @OperLog(module = "订单管理", action = "删除订单")
     @ResponseBody
     public Result<Void> remove(@PathVariable Long id) {
         adminOrderService.remove(id);

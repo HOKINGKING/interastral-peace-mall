@@ -1,11 +1,13 @@
 package com.ipc.mall.controller.front;
 
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.constant.CaptchaScope;
 import com.ipc.mall.common.constant.SessionKey;
 import com.ipc.mall.common.exception.BizException;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.result.ResultCode;
 import com.ipc.mall.common.util.AuthWebUtils;
+import com.ipc.mall.common.util.OperLogContext;
 import com.ipc.mall.dto.ChangePasswordForm;
 import com.ipc.mall.dto.LoginForm;
 import com.ipc.mall.dto.RegisterForm;
@@ -65,15 +67,18 @@ public class AccountController {
     }
 
     @PostMapping("/user/login")
+    @OperLog(module = "认证", action = "前台登录", login = true)
     public String login(@Valid @ModelAttribute("loginForm") LoginForm form,
                         BindingResult bindingResult,
                         HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
+            OperLogContext.markFailure(request, "登录参数校验失败");
             return "front/login";
         }
 
         HttpSession session = request.getSession();
         if (!captchaService.verify(session, CaptchaScope.FRONT, form.getCaptcha())) {
+            OperLogContext.markFailure(request, "验证码错误或已过期");
             bindingResult.rejectValue("captcha", "captcha.invalid", "验证码错误或已过期");
             return "front/login";
         }
@@ -85,6 +90,7 @@ public class AccountController {
             session.setAttribute(SessionKey.LOGIN_ACCOUNT, loginAccount);
             return "redirect:" + AuthWebUtils.safeRedirect(form.getRedirect());
         } catch (BizException e) {
+            OperLogContext.markFailure(request, e.getMessage());
             bindingResult.reject("login.error", e.getMessage());
             return "front/login";
         }

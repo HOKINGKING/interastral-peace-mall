@@ -1,5 +1,6 @@
 package com.ipc.mall.controller.admin;
 
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.result.ResultCode;
 import com.ipc.mall.dto.CategoryForm;
@@ -74,6 +75,7 @@ public class AdminCategoryController {
 
     /** A7：保存 */
     @PostMapping("/admin/category/save")
+    @OperLog(module = "分类管理", action = "保存分类")
     @ResponseBody
     public Result<Void> save(@Valid @ModelAttribute("categoryForm") CategoryForm categoryForm,
                              BindingResult bindingResult) {
@@ -90,6 +92,7 @@ public class AdminCategoryController {
 
     /** A8：删除（有子分类或商品时 2004） */
     @DeleteMapping("/admin/category/{id}")
+    @OperLog(module = "分类管理", action = "删除分类")
     @ResponseBody
     public Result<Void> remove(@PathVariable Long id) {
         categoryAdminService.remove(id);

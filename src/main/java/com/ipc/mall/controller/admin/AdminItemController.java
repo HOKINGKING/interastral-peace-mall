@@ -1,5 +1,6 @@
 package com.ipc.mall.controller.admin;
 
+import com.ipc.mall.annotation.OperLog;
 import com.ipc.mall.common.result.Result;
 import com.ipc.mall.common.result.ResultCode;
 import com.ipc.mall.dto.AdminSkuForm;
@@ -89,6 +90,7 @@ public class AdminItemController {
 
     /** A15：保存 */
     @PostMapping("/admin/item/save")
+    @OperLog(module = "商品管理", action = "保存规格")
     @ResponseBody
     public Result<Void> save(@Valid @ModelAttribute("skuForm") AdminSkuForm skuForm, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -104,6 +106,7 @@ public class AdminItemController {
 
     /** A16：删除（最后一条 SKU 禁删） */
     @DeleteMapping("/admin/item/{id}")
+    @OperLog(module = "商品管理", action = "删除规格")
     @ResponseBody
     public Result<Void> remove(@PathVariable Long id) {
         itemAdminService.remove(id);
