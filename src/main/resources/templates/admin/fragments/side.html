@@ -12,7 +12,7 @@
     <a th:href="@{/admin/category}" th:classappend="${active == 'category'} ? 'active' : ''">分类管理</a>
     <a th:href="@{/admin/product}" th:classappend="${active == 'product' or active == 'item'} ? 'active' : ''">商品管理</a>
     <a th:href="@{/admin/order}" th:classappend="${active == 'order'} ? 'active' : ''">订单管理</a>
-    <span class="admin-nav-disabled">用户管理 · 待接入</span>
+    <a th:href="@{/admin/account}" th:classappend="${active == 'account'} ? 'active' : ''">用户管理</a>
     <span class="admin-nav-disabled">操作日志 · 待接入</span>
 </aside>
 </body>

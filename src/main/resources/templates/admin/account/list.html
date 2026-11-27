@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('account')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('用户管理')}"></div>
+
+    <div class="admin-body">
+        <div class="page-title">
+            <div>
+                <h1>用户管理</h1>
+                <p>按用户名 / 昵称 / 手机号搜索；禁用后最多 5 分钟内被前台拦截器踢下线，账号数据不删除</p>
+            </div>
+        </div>
+
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel pad-sm mb-16">
+            <form class="row wrap" method="get" th:action="@{/admin/account}" style="gap:8px">
+                <input class="input" style="width:220px;height:32px" type="search" name="keyword"
+                       th:value="${keyword}" placeholder="用户名 / 昵称 / 手机号" maxlength="20">
+                <select class="select" name="status" style="width:130px;height:32px">
+                    <option value="">全部状态</option>
+                    <option value="1" th:selected="${status != null and status == 1}">启用</option>
+                    <option value="0" th:selected="${status != null and status == 0}">已禁用</option>
+                </select>
+                <button class="btn btn-sm" type="submit">查询</button>
+                <a class="btn btn-sm" th:href="@{/admin/account}">重置</a>
+                <span style="flex:1"></span>
+                <span class="small muted" th:text="|共 ${total} 位用户|">共 0 位用户</span>
+            </form>
+        </div>
+
+        <div class="panel">
+            <table class="table" th:if="${!#lists.isEmpty(accounts)}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>昵称</th>
+                    <th>手机号</th>
+                    <th>状态</th>
+                    <th>注册时间</th>
+                    <th>最后登录</th>
+                    <th class="right">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${accounts}" th:attr="data-account-id=${a.id}">
+                    <td class="mono" th:text="|#${a.id}|">#1</td>
+                    <td>
+                        <a class="mono" style="font-weight:600"
+                           th:href="@{/admin/account/{id}(id=${a.id})}" th:text="${a.username}">xingye</a>
+                    </td>
+                    <td th:text="${a.displayName}">星野</td>
+                    <td class="mono" th:text="${a.phoneMasked}">138****0001</td>
+                    <td><span class="badge" th:classappend="${a.statusClass}" th:text="${a.statusDesc}">启用</span></td>
+                    <td class="small muted" th:text="${a.createTimeText}">2026-11-17 20:15</td>
+                    <td class="small muted" th:text="${a.lastLoginTimeText}">2026-11-17 20:15</td>
+                    <td class="right">
+                        <div class="actions">
+                            <a class="btn btn-sm" th:href="@{/admin/account/{id}(id=${a.id})}">详情</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="empty" th:if="${#lists.isEmpty(accounts)}">
+                <div class="icon">👤</div>
+                <div>没有匹配的用户</div>
+                <div class="small muted mt-8">换个关键词或状态试试</div>
+            </div>
+        </div>
+
+        <!-- 分页：与前台共用 PageUtils 生成的链接，单位换成「位用户」 -->
+        <div class="pagination" th:if="${pagination != null and pagination.totalPages > 1}">
+            <a th:if="${pagination.hasPrev}" th:href="${pagination.prevUrl}">上一页</a>
+            <span th:unless="${pagination.hasPrev}" class="disabled">上一页</span>
+
+            <th:block th:each="link : ${pagination.links}">
+                <span th:if="${link.ellipsis}" class="small muted" style="border:0;background:none">…</span>
+                <a th:unless="${link.ellipsis}" th:href="${link.url}"
+                   th:classappend="${link.current} ? 'active' : ''" th:text="${link.no}">1</a>
+            </th:block>
+
+            <a th:if="${pagination.hasNext}" th:href="${pagination.nextUrl}">下一页</a>
+            <span th:unless="${pagination.hasNext}" class="disabled">下一页</span>
+
+            <span class="small muted" style="border:0;background:none"
+                  th:text="|共 ${pagination.totalPages} 页 · ${pagination.total} 位用户|">共 1 页</span>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

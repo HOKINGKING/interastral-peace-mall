@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body class="admin">
+<div th:replace="~{admin/fragments/side :: side('account')}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{admin/fragments/top :: top('用户管理 / 用户详情')}"></div>
+
+    <div class="admin-body">
+        <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+        <div class="panel pad mb-16">
+            <div class="between wrap">
+                <div>
+                    <div class="row">
+                        <h2 style="font-size:18px" th:text="${account.displayName}">星野</h2>
+                        <span class="badge" th:classappend="${account.statusClass}"
+                              th:text="${account.statusDesc}">启用</span>
+                    </div>
+                    <div class="small muted mt-8">
+                        <span class="mono" th:text="|@${account.username}|">@xingye</span>
+                        · ID <span class="mono" th:text="|#${account.id}|">#1</span>
+                        · 注册于 <span th:text="${account.createTimeText}">2026-11-17 20:15:01</span>
+                    </div>
+                </div>
+                <div class="row wrap" style="gap:8px">
+                    <a class="btn btn-sm" th:href="@{/admin/account}">返回列表</a>
+                    <a class="btn btn-sm" th:href="@{/admin/order(username=${account.username})}">查看TA的订单</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="align-items:flex-start;gap:20px">
+            <div class="content-main">
+                <!-- 基本资料 -->
+                <div class="panel pad">
+                    <b>基本资料</b>
+                    <p class="small muted mt-8">用户名是登录标识，不可修改；手机号留空表示解绑。</p>
+                    <form class="mt-16" th:action="@{/admin/account/save}"
+                          data-admin-form th:attr="data-redirect=|/admin/account/${account.id}|">
+                        <input type="hidden" name="id" th:value="${account.id}">
+                        <div class="grid-2">
+                            <div class="field">
+                                <label>用户名</label>
+                                <input class="input" type="text" th:value="${account.username}" disabled>
+                                <div class="help">登录名，创建后不可修改</div>
+                            </div>
+                            <div class="field">
+                                <label>昵称</label>
+                                <input class="input" type="text" name="nickname" maxlength="20"
+                                       th:value="${account.nickname}" placeholder="选填，留空则显示用户名">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label>手机号</label>
+                                <input class="input" type="tel" name="phone" maxlength="11"
+                                       th:value="${account.phone}" placeholder="11 位手机号，留空表示解绑">
+                            </div>
+                            <div class="field">
+                                <label>账号状态</label>
+                                <select class="select" name="status">
+                                    <option value="1" th:selected="${account.status == 1}">启用</option>
+                                    <option value="0" th:selected="${account.status == 0}">禁用</option>
+                                </select>
+                                <div class="help">禁用后无法登录，已登录会话最多 5 分钟内失效</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" type="submit">保存</button>
+                    </form>
+                </div>
+
+                <!-- 重置密码 -->
+                <div class="panel pad mt-16">
+                    <b>重置密码</b>
+                    <p class="small muted mt-8">
+                        重置后旧密码立即失效，用户需用新密码重新登录；密码只以 BCrypt 密文入库。
+                        已登录的会话不会被强制下线，如需立即踢下线，可先把账号禁用 5 分钟再启用。
+                    </p>
+                    <form class="mt-16" th:action="@{/admin/account/{id}/reset-password(id=${account.id})}"
+                          data-admin-form th:attr="data-redirect=|/admin/account/${account.id}|">
+                        <div class="field" style="max-width:320px">
+                            <label>新密码</label>
+                            <input class="input" type="password" name="password" maxlength="20"
+                                   autocomplete="new-password" placeholder="6–20 位，需含字母和数字">
+                        </div>
+                        <button class="btn btn-sm" type="submit"
+                                data-confirm="确定重置该用户的密码吗？旧密码将立即失效。">重置密码</button>
+                    </form>
+                </div>
+            </div>
+
+            <aside style="width:300px;flex:0 0 300px">
+                <div class="panel pad">
+                    <b>账户概览</b>
+                    <div class="divider"></div>
+                    <div class="between small">
+                        <span class="muted">订单数</span>
+                        <span th:text="${account.orderCount}">0</span>
+                    </div>
+                    <div class="between small mt-8">
+                        <span class="muted">手机号</span>
+                        <span class="mono" th:text="${account.phoneMasked}">138****0001</span>
+                    </div>
+                    <div class="between small mt-8">
+                        <span class="muted">最后登录</span>
+                        <span class="small" th:text="${account.lastLoginTimeText}">2026-11-17 20:15:01</span>
+                    </div>
+                </div>
+
+                <div class="panel pad mt-16">
+                    <b>说明</b>
+                    <p class="small muted mt-8">
+                        后台只允许改昵称、手机号与状态；订单与金额属于交易快照，不在用户管理里修改。
+                    </p>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>
