@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('feedback')}"></div>
+
+<main class="container page">
+    <div class="breadcrumb">
+        <a th:href="@{/}">首页</a>
+        <span class="sep">›</span>
+        <a th:href="@{/feedback/list}">我的投诉与反馈</a>
+        <span class="sep">›</span>
+        <span th:text="|${feedback.typeDesc} #${feedback.id}|">投诉 #1</span>
+    </div>
+
+    <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+    <div class="panel pad mb-16">
+        <div class="between wrap">
+            <div>
+                <div class="row">
+                    <h2 style="font-size:18px" th:text="|${feedback.typeDesc}详情|">投诉详情</h2>
+                    <span class="badge" th:classappend="${feedback.statusClass}"
+                          th:text="${feedback.statusDesc}">待处理</span>
+                </div>
+                <div class="small muted mt-8">
+                    提交时间 <span th:text="${feedback.createTimeText}">2026-11-27 13:00:00</span>
+                    <span th:if="${feedback.categoryDesc != null}"> · 分类：<span th:text="${feedback.categoryDesc}">商品质量</span></span>
+                </div>
+            </div>
+            <div class="row wrap" style="gap:8px">
+                <a class="btn btn-sm" th:href="@{/feedback/list}">返回列表</a>
+                <form th:if="${feedback.canCancel}" th:action="@{/feedback/{id}/cancel(id=${feedback.id})}"
+                      method="post" style="margin:0">
+                    <button class="btn btn-sm" type="submit"
+                            data-confirm="撤销后卖家将不再处理这条投诉/反馈，确定撤销吗？">撤销</button>
+                </form>
+                <form th:if="${feedback.canResolve}" th:action="@{/feedback/{id}/resolve(id=${feedback.id})}"
+                      method="post" style="margin:0">
+                    <button class="btn btn-sm btn-primary" type="submit"
+                            data-confirm="确认问题已解决？确认后该投诉将关闭。">我已解决</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" style="align-items:flex-start;gap:20px">
+        <div class="content-main">
+            <!-- 内容 -->
+            <div class="panel pad">
+                <b>问题描述</b>
+                <div class="mt-16" style="white-space:pre-wrap" th:text="${feedback.content}">内容</div>
+                <div class="row wrap mt-16" style="gap:8px" th:if="${!#lists.isEmpty(feedback.images)}">
+                    <img th:each="img : ${feedback.images}" th:src="${img}" alt="凭证图片"
+                         style="width:96px;height:96px;border-radius:8px;object-fit:cover">
+                </div>
+                <div class="small muted mt-16" th:if="${feedback.contact != null}">
+                    联系方式：<span th:text="${feedback.contact}">138****0001</span>
+                </div>
+            </div>
+
+            <!-- 关联订单（投诉） -->
+            <div class="panel pad mt-16" th:if="${feedback.order != null}">
+                <div class="between">
+                    <b>关联订单</b>
+                    <a class="btn btn-sm" th:href="@{/order/{id}(id=${feedback.order.id})}">查看订单</a>
+                </div>
+                <div class="divider"></div>
+                <div class="between small">
+                    <span class="mono" th:text="${feedback.order.orderNo}">20261116102133</span>
+                    <span th:text="${feedback.order.statusDesc}">已完成</span>
+                </div>
+                <div class="between small mt-8">
+                    <span class="muted">下单时间</span>
+                    <span th:text="${feedback.order.createTimeText}">2026-11-16 10:21</span>
+                </div>
+                <div class="between small mt-8">
+                    <span class="muted">订单金额</span>
+                    <span th:text="|¥${feedback.order.totalAmountText}|">¥0.00</span>
+                </div>
+            </div>
+
+            <!-- 补充说明 -->
+            <div class="panel pad mt-16">
+                <b>补充说明</b>
+                <div class="help">补充说明不会改变处理状态，卖家与客服都能看到</div>
+                <div class="mt-16" th:if="${!#lists.isEmpty(feedback.notes)}">
+                    <div class="small muted" th:each="note : ${feedback.notes}"
+                         style="padding:6px 0;border-bottom:1px dashed var(--line)" th:text="${note}">【时间】说明</div>
+                </div>
+                <form class="mt-16" th:if="${feedback.canNote}"
+                      th:action="@{/feedback/{id}/note(id=${feedback.id})}" method="post">
+                    <div class="field">
+                        <textarea class="input" name="note" rows="3" maxlength="200"
+                                  placeholder="补充细节，最多 200 字"></textarea>
+                    </div>
+                    <button class="btn btn-sm" type="submit">提交补充说明</button>
+                </form>
+            </div>
+        </div>
+
+        <aside style="width:320px;flex:0 0 320px">
+            <!-- 卖家回复 -->
+            <div class="panel pad" th:if="${feedback.reply != null}">
+                <b>卖家回复</b>
+                <div class="divider"></div>
+                <div style="white-space:pre-wrap" th:text="${feedback.reply}">回复内容</div>
+                <div class="small muted mt-8" th:text="${feedback.replyTimeText}">2026-11-27 14:00:00</div>
+            </div>
+            <div class="panel pad" th:if="${feedback.reply == null}">
+                <b>卖家回复</b>
+                <div class="small muted mt-8">卖家还没有回复，请耐心等待；有新进展会显示在这里。</div>
+            </div>
+
+            <!-- 时间线 -->
+            <div class="panel pad mt-16">
+                <b>处理进度</b>
+                <div class="timeline mt-16">
+                    <div class="item done">
+                        <div class="t">已提交</div>
+                        <div class="d" th:text="${feedback.createTimeText}">2026-11-27 13:00:00</div>
+                    </div>
+                    <div class="item" th:classappend="${feedback.replyTimeText != null} ? 'done' : ''">
+                        <div class="t">卖家已回复</div>
+                        <div class="d" th:text="${feedback.replyTimeText != null ? feedback.replyTimeText : '等待中'}">等待中</div>
+                    </div>
+                    <div class="item" th:classappend="${feedback.status == 'CLOSED'} ? 'done' : ''">
+                        <div class="t" th:text="${feedback.status == 'CLOSED'} ? '已关闭' : '等待收口'">等待收口</div>
+                        <div class="d" th:text="${feedback.closeReason != null ? feedback.closeReason : (feedback.status == 'CLOSED' ? '已关闭' : '卖家关闭或你确认解决后结束')}">说明</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

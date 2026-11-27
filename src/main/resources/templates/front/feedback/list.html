@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('feedback')}"></div>
+
+<main class="container page">
+    <div class="breadcrumb">
+        <a th:href="@{/}">首页</a>
+        <span class="sep">›</span>
+        <span>我的投诉与反馈</span>
+    </div>
+
+    <div class="page-title">
+        <div>
+            <h1>我的投诉与反馈</h1>
+            <p>投诉绑定订单、反馈不绑订单；卖家回复后可以确认解决或继续补充说明</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/feedback/form}">意见反馈</a>
+    </div>
+
+    <div class="panel pad mb-16" th:if="${listMessage != null}" th:text="${listMessage}">提示</div>
+
+    <div class="panel pad-sm mb-16">
+        <div class="between wrap" style="gap:8px">
+            <div class="row wrap" style="gap:8px">
+                <a th:each="tab : ${typeTabs}" class="btn btn-sm"
+                   th:classappend="${tab.active} ? 'btn-primary' : ''"
+                   th:href="${tab.url}" th:text="${tab.label}">全部</a>
+            </div>
+            <form class="row" method="get" th:action="@{/feedback/list}" style="gap:8px">
+                <input type="hidden" name="type" th:if="${type != null}" th:value="${type}">
+                <select class="select" name="status" style="width:130px;height:32px">
+                    <option value="">全部状态</option>
+                    <option value="PENDING" th:selected="${status == 'PENDING'}">待处理</option>
+                    <option value="PROCESSING" th:selected="${status == 'PROCESSING'}">处理中</option>
+                    <option value="REPLIED" th:selected="${status == 'REPLIED'}">已回复</option>
+                    <option value="CLOSED" th:selected="${status == 'CLOSED'}">已关闭</option>
+                </select>
+                <button class="btn btn-sm" type="submit">筛选</button>
+            </form>
+        </div>
+    </div>
+
+    <section class="panel">
+        <table class="table" th:if="${!#lists.isEmpty(feedbacks)}">
+            <thead>
+            <tr>
+                <th>类型</th>
+                <th>关联订单</th>
+                <th>内容摘要</th>
+                <th>状态</th>
+                <th>提交时间</th>
+                <th>卖家回复</th>
+                <th class="right">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${feedbacks}">
+                <td>
+                    <span class="badge" th:classappend="${f.type == 'COMPLAINT'} ? 'badge-danger' : 'badge'"
+                          th:text="${f.typeDesc}">投诉</span>
+                </td>
+                <td>
+                    <a class="mono small" th:if="${f.orderId != null}"
+                       th:href="@{/order/{id}(id=${f.orderId})}" th:text="${f.orderNo != null ? f.orderNo : '订单已删除'}">20261116102133</a>
+                    <span class="small muted" th:if="${f.orderId == null}">—</span>
+                </td>
+                <td th:text="${f.contentPreview}">内容摘要</td>
+                <td><span class="badge" th:classappend="${f.statusClass}" th:text="${f.statusDesc}">待处理</span></td>
+                <td class="small muted" th:text="${f.createTimeText}">2026-11-27 13:00</td>
+                <td class="small">
+                    <span class="badge badge-completed" th:if="${f.replied}">已回复</span>
+                    <span class="muted" th:unless="${f.replied}">—</span>
+                </td>
+                <td class="right">
+                    <a class="btn btn-sm" th:href="@{/feedback/{id}(id=${f.id})}">详情</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="empty" th:if="${#lists.isEmpty(feedbacks)}">
+            <div class="icon">💬</div>
+            <div>还没有投诉或反馈</div>
+            <div class="small muted mt-8">遇到问题可以在订单详情里投诉，或直接提交意见反馈</div>
+            <div class="row mt-16" style="justify-content:center">
+                <a class="btn btn-primary" th:href="@{/order/list}">查看我的订单</a>
+                <a class="btn" th:href="@{/feedback/form}">意见反馈</a>
+            </div>
+        </div>
+    </section>
+
+    <div th:replace="~{front/fragments/pagination :: pager(${pagination})}"></div>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

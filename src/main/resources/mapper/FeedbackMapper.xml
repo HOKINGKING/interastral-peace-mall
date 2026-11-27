@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ipc.mall.mapper.FeedbackMapper">
+
+    <!--
+      后台投诉/反馈列表（PRD §6.6 / A28）
+      - LEFT JOIN account 拿用户名/昵称（账号逻辑删除后仍能显示快照字段为空）
+      - LEFT JOIN orders 拿订单号，支持按订单号筛选
+      - 排序：PENDING 优先，其次按提交时间倒序（PRD §6.6）
+      - 日期区间由 Service 转成「次日 00:00」开区间，含结束当天
+    -->
+    <select id="selectAdminPage" resultType="com.ipc.mall.vo.AdminFeedbackRowVO">
+        SELECT f.id,
+               f.type,
+               f.account_id,
+               a.username,
+               a.nickname,
+               f.order_id,
+               o.order_no,
+               f.content,
+               f.status,
+               f.create_time,
+               CASE WHEN f.reply IS NULL THEN 0 ELSE 1 END AS replied
+        FROM feedback f
+        LEFT JOIN account a ON a.id = f.account_id AND a.deleted = 0
+        LEFT JOIN orders o ON o.id = f.order_id AND o.deleted = 0
+        WHERE f.deleted = 0
+        <if test="type != null and type != ''">
+            AND f.type = #{type}
+        </if>
+        <if test="status != null and status != ''">
+            AND f.status = #{status}
+        </if>
+        <if test="orderNo != null and orderNo != ''">
+            AND o.order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="username != null and username != ''">
+            AND (a.username LIKE CONCAT('%', #{username}, '%')
+                 OR a.nickname LIKE CONCAT('%', #{username}, '%'))
+        </if>
+        <if test="dateFrom != null">
+            AND f.create_time &gt;= #{dateFrom}
+        </if>
+        <if test="dateTo != null">
+            AND f.create_time &lt; #{dateTo}
+        </if>
+        ORDER BY CASE f.status
+                     WHEN 'PENDING' THEN 0
+                     WHEN 'PROCESSING' THEN 1
+                     WHEN 'REPLIED' THEN 2
+                     ELSE 3
+                 END,
+                 f.create_time DESC,
+                 f.id DESC
+    </select>
+
+</mapper>

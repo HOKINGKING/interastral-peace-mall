@@ -12,6 +12,7 @@
     <a th:href="@{/admin/category}" th:classappend="${active == 'category'} ? 'active' : ''">分类管理</a>
     <a th:href="@{/admin/product}" th:classappend="${active == 'product' or active == 'item'} ? 'active' : ''">商品管理</a>
     <a th:href="@{/admin/order}" th:classappend="${active == 'order'} ? 'active' : ''">订单管理</a>
+    <a th:href="@{/admin/feedback}" th:classappend="${active == 'feedback'} ? 'active' : ''">投诉与反馈</a>
     <a th:href="@{/admin/account}" th:classappend="${active == 'account'} ? 'active' : ''">用户管理</a>
     <a th:href="@{/admin/log}" th:classappend="${active == 'log'} ? 'active' : ''">操作日志</a>
 </aside>

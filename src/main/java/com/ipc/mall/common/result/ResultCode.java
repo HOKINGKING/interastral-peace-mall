@@ -40,7 +40,12 @@ public enum ResultCode {
     ORDER_STATUS_INVALID(3002, "当前状态不允许该操作"),
     ORDER_NOT_OWNED(3003, "无权操作该订单"),
     CART_EMPTY(3005, "请选择要结算的商品"),
-    DUPLICATE_SUBMIT(3006, "请勿重复提交");
+    DUPLICATE_SUBMIT(3006, "请勿重复提交"),
+
+    // ---------- 投诉与反馈（PRD §5.15 / §8.4） ----------
+    FEEDBACK_ORDER_INVALID(3007, "只能投诉本人已支付/已发货/已完成的订单"),
+    FEEDBACK_DUPLICATE(3008, "该订单已有未关闭的投诉"),
+    FEEDBACK_RATE_LIMIT(3009, "反馈提交过于频繁，请稍后再试");
 
     private final int code;
     private final String message;

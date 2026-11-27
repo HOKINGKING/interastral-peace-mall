@@ -85,8 +85,7 @@
                                     data-confirm="请确认已收到商品，确认后交易完成。">确认收货</button>
                         </form>
                         <a class="btn btn-sm" th:if="${o.canComplaint}"
-                           th:href="@{/feedback/form(orderId=${o.id})}"
-                           data-pending="投诉与反馈模块将在下一里程碑（M7）接入">投诉</a>
+                           th:href="@{/feedback/form(orderId=${o.id})}">投诉</a>
                         <button class="btn btn-sm btn-danger" type="button" th:if="${o.canDelete}"
                                 th:attr="data-delete-order=${o.id}">删除订单</button>
                     </div>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{front/fragments/head :: head(${pageTitle})}"></head>
+<body>
+<div th:replace="~{front/fragments/header :: header('feedback')}"></div>
+
+<main class="container page">
+    <div class="breadcrumb">
+        <a th:href="@{/}">首页</a>
+        <span class="sep">›</span>
+        <a th:href="@{/feedback/list}">我的投诉与反馈</a>
+        <span class="sep">›</span>
+        <span th:text="${form.complaint} ? '订单投诉' : '意见反馈'">意见反馈</span>
+    </div>
+
+    <div class="page-title">
+        <div>
+            <h1 th:text="${form.complaint} ? '投诉此订单' : '意见反馈'">意见反馈</h1>
+            <p th:if="${form.complaint}">投诉会绑定该订单，卖家回复后可在此继续补充说明</p>
+            <p th:unless="${form.complaint}">你的建议会直接进入后台，帮助我们把商城做得更好</p>
+        </div>
+        <a class="btn" th:href="@{/feedback/list}">我的投诉与反馈</a>
+    </div>
+
+    <section class="panel pad" style="max-width:760px">
+        <!-- 投诉：订单快照 -->
+        <div class="panel pad-sm mb-16" th:if="${form.complaint}"
+             style="background:var(--bg-soft);border:1px solid var(--line)">
+            <div class="between wrap">
+                <div>
+                    <div class="small muted">关联订单</div>
+                    <div class="mono" th:text="${form.orderNo}">20261116102133</div>
+                </div>
+                <div class="row" style="gap:16px">
+                    <div>
+                        <div class="small muted">订单状态</div>
+                        <div th:text="${form.orderStatusDesc}">已完成</div>
+                    </div>
+                    <div>
+                        <div class="small muted">订单金额</div>
+                        <div th:text="|¥${form.totalAmountText}|">¥0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 已有未关闭投诉：只提示，不再给表单 -->
+        <div th:if="${form.blocked != null}">
+            <div class="panel pad-sm" style="color:var(--danger)" th:text="${form.blocked}">该订单已有未关闭的投诉</div>
+            <div class="row mt-16">
+                <a class="btn btn-primary" th:href="@{/feedback/list}">查看我的投诉</a>
+                <a class="btn" th:href="@{/order/list}">返回订单</a>
+            </div>
+        </div>
+
+        <form th:unless="${form.blocked != null}" th:action="@{/feedback/submit}" method="post">
+            <input type="hidden" name="orderId" th:if="${form.orderId != null}" th:value="${form.orderId}">
+
+            <div class="field">
+                <label>
+                    问题分类
+                    <span class="req" th:if="${form.complaint}">*</span>
+                    <span class="small muted" th:unless="${form.complaint}">（选填）</span>
+                </label>
+                <select class="select" name="category">
+                    <option value="">请选择分类</option>
+                    <option value="QUALITY" th:selected="${feedbackForm.category == 'QUALITY'}">商品质量</option>
+                    <option value="LOGISTICS" th:selected="${feedbackForm.category == 'LOGISTICS'}">物流发货</option>
+                    <option value="SERVICE" th:selected="${feedbackForm.category == 'SERVICE'}">服务态度</option>
+                    <option value="OTHER" th:selected="${feedbackForm.category == 'OTHER'}">其他</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>具体描述<span class="req">*</span></label>
+                <textarea class="input" name="content" rows="6" maxlength="500"
+                          th:text="${feedbackForm.content}"
+                          placeholder="请描述遇到的问题，投诉 10–500 字，反馈 5–500 字"></textarea>
+                <div class="help">纯文本；请勿填写密码等敏感信息，卖家与客服都看不到你的账号密码</div>
+            </div>
+
+            <div class="field">
+                <label>联系方式<span class="small muted">（选填）</span></label>
+                <input class="input" type="text" name="contact" maxlength="50"
+                       th:value="${feedbackForm.contact}" placeholder="手机号或邮箱，方便卖家联系你">
+            </div>
+
+            <div class="panel pad-sm mb-16" th:if="${formError != null}"
+                 style="color:var(--danger)" th:text="${formError}">提交失败</div>
+
+            <div class="row">
+                <button class="btn btn-primary" type="submit">提交</button>
+                <a class="btn" th:href="@{/feedback/list}">取消</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<div th:replace="~{front/fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -58,4 +58,18 @@ public enum FeedbackStatus {
         }
         return code;
     }
+
+    /** 状态 → style.css 里已有的 badge 类名（复用订单那套配色） */
+    public static String badgeClassOf(String code) {
+        if (code == null) {
+            return "badge";
+        }
+        return switch (code) {
+            case "PENDING" -> "badge-pending";
+            case "PROCESSING" -> "badge-shipped";
+            case "REPLIED" -> "badge-paid";
+            case "CLOSED" -> "badge-closed";
+            default -> "badge";
+        };
+    }
 }
