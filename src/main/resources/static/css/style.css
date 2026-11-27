@@ -30,6 +30,16 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+/* 前台页面：页脚吸底，内容不足一屏时不会把页脚吊在半空。
+   后台 body.admin 是另一套 flex 布局、后台登录页 body.admin-login-page 是整屏居中，均排除 */
+body:not(.admin):not(.admin-login-page) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+body:not(.admin):not(.admin-login-page) > main {
+  flex: 1 0 auto;
+}
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, h4 { margin: 0; font-weight: 650; letter-spacing: -.01em; }
 p { margin: 0; }
