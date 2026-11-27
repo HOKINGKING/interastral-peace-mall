@@ -14,6 +14,7 @@ import com.ipc.mall.vo.CheckoutVO;
 import com.ipc.mall.vo.LoginAccount;
 import com.ipc.mall.vo.OrderSummaryVO;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -44,8 +45,9 @@ import java.util.UUID;
 @Controller
 public class OrderController {
 
-    /** 支付倒计时窗口：30 分钟（超时关单是 P1，本期只展示倒计时） */
-    private static final long PAY_TIMEOUT_SECONDS = 30 * 60L;
+    /** 支付倒计时窗口（分钟），与定时关单共用 mall.order.pay-timeout-minutes；默认 30 分钟 */
+    @Value("${mall.order.pay-timeout-minutes:30}")
+    private long payTimeoutMinutes = 30;
 
     /** 订单列表每页条数 */
     private static final int PAGE_SIZE = 6;
@@ -307,13 +309,14 @@ public class OrderController {
         return null;
     }
 
-    /** 支付倒计时：下单后 30 分钟（PRD §5.14 超时关单窗口） */
+    /** 支付倒计时：下单后 N 分钟（与自动关单同一配置），到点由定时任务关闭 */
     private long remainSeconds(Order order) {
         if (order.getCreateTime() == null) {
             return 0;
         }
         long elapsed = Duration.between(order.getCreateTime(), LocalDateTime.now()).getSeconds();
-        return Math.max(0, PAY_TIMEOUT_SECONDS - elapsed);
+        long window = Math.max(1, payTimeoutMinutes) * 60;
+        return Math.max(0, window - elapsed);
     }
 
     private LoginAccount currentAccount(HttpSession session) {

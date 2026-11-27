@@ -52,4 +52,14 @@ public interface OrderService {
 
     /** 删除订单（F37）：只有终态可删，逻辑删除且不回补库存；非终态 3002 */
     void remove(Long accountId, Long orderId);
+
+    /**
+     * 超时关单（T4，P1）：PENDING_PAYMENT → CANCELLED + cancel_time + 回补库存。
+     * <p>
+     * 只按订单 id 操作、不校验归属（调用方是系统定时任务）；条件更新 0 行说明
+     * 订单已被支付/取消，返回 false 且不回补库存，保证同一单只回补一次。
+     *
+     * @return true 表示本次调用真正关闭了订单
+     */
+    boolean closeTimeoutOrder(Long orderId);
 }

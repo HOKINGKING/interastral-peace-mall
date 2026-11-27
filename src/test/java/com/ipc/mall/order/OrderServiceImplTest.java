@@ -434,6 +434,30 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void 超时关单成功并回补库存() {
+        when(orderMapper.markCancelledByTimeout(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(1);
+        when(orderItemMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
+                line(1L, 6L, 4L, 2),
+                line(1L, 8L, 6L, 1)));
+
+        assertTrue(orderService.closeTimeoutOrder(1L));
+
+        verify(itemMapper).restoreStock(6L, 2);
+        verify(itemMapper).restoreStock(8L, 1);
+    }
+
+    @Test
+    void 超时关单条件更新零行不回补库存() {
+        when(orderMapper.markCancelledByTimeout(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(0);
+
+        assertFalse(orderService.closeTimeoutOrder(1L));
+
+        verify(itemMapper, never()).restoreStock(any(), any());
+    }
+
+    @Test
     void 已发货订单确认收货成功() {
         when(orderMapper.selectById(4L)).thenReturn(order(4L, 1L, OrderStatus.SHIPPED));
         when(orderMapper.markCompleted(eq(4L), eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))

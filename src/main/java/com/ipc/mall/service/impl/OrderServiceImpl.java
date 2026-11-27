@@ -243,6 +243,26 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean closeTimeoutOrder(Long orderId) {
+        if (orderId == null) {
+            return false;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        // 条件更新：只有仍是待支付的订单才会被关闭，避免与用户支付/取消并发时重复回补
+        int rows = orderMapper.markCancelledByTimeout(orderId, now, now);
+        if (rows == 0) {
+            log.debug("超时关单跳过（状态已变更）: orderId={}", orderId);
+            return false;
+        }
+        for (OrderItem item : itemsOf(orderId)) {
+            itemMapper.restoreStock(item.getItemId(), item.getQuantity());
+        }
+        log.info("订单超时关闭，库存已回补: orderId={}", orderId);
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void receive(Long accountId, Long orderId) {
         Order order = findOwned(accountId, orderId);
         if (!OrderStatus.of(order.getStatus()).canTransitTo(OrderStatus.COMPLETED)) {

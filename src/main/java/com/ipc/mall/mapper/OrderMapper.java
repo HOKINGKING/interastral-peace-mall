@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ipc.mall.entity.Order;
 import com.ipc.mall.vo.AdminOrderRowVO;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 订单 Mapper。
@@ -79,4 +81,22 @@ public interface OrderMapper extends BaseMapper<Order> {
                                            @Param("status") String status,
                                            @Param("dateFrom") LocalDateTime dateFrom,
                                            @Param("dateTo") LocalDateTime dateTo);
+
+    /**
+     * 超时关单扫描（T4）：待支付且下单时间早于 deadline 的订单，按 id 升序取一批。
+     * <p>
+     * 只查必要列，避免定时任务把大字段（remark/detail 快照）拉进内存。
+     */
+    @Select("SELECT id, order_no, account_id, status, total_amount, create_time "
+            + "FROM orders WHERE status = 'PENDING_PAYMENT' AND deleted = 0 "
+            + "AND create_time < #{deadline} ORDER BY id LIMIT #{limit}")
+    List<Order> selectTimeoutCandidates(@Param("deadline") LocalDateTime deadline,
+                                        @Param("limit") int limit);
+
+    /** T4 超时关单：只允许 PENDING_PAYMENT → CANCELLED，影响 0 行说明已被支付或取消 */
+    @Update("UPDATE orders SET status = 'CANCELLED', cancel_time = #{cancelTime}, update_time = #{updateTime} "
+            + "WHERE id = #{id} AND status = 'PENDING_PAYMENT' AND deleted = 0")
+    int markCancelledByTimeout(@Param("id") Long id,
+                               @Param("cancelTime") LocalDateTime cancelTime,
+                               @Param("updateTime") LocalDateTime updateTime);
 }
